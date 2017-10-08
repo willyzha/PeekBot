@@ -189,7 +189,7 @@ class TextToSpeech:
         self._setup_queue(server)
         self._stop_player(server)
         #self._stop_downloader(server)
-        self.bot.loop.create_task(self._update_bot_status())
+        #self.bot.loop.create_task(self._update_bot_status())
     
     async def _stop_and_disconnect(self, server):
         self._stop(server)
