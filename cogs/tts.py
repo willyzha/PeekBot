@@ -194,6 +194,9 @@ class TextToSpeech:
     async def _stop_and_disconnect(self, server):
         self._stop(server)
         await self._disconnect_voice_client(server)
+        
+    def voice_client(self, server):
+        return self.bot.voice_client_in(server)
 
 class deque(collections.deque):
     def __init__(self, *args, **kwargs):
