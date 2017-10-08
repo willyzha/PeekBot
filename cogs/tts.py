@@ -42,6 +42,7 @@ class TextToSpeech:
         """Turn on TextToSpeech"""
         server = ctx.message.server
         author = ctx.message.author
+        voice_channel = author.voice_channel
         
         if self.is_playing(server):
             await ctx.invoke(self._queue, url=url)
