@@ -162,6 +162,20 @@ class TextToSpeech:
             raise ConnectTimeout("We timed out connecting to a voice channel,"
                                  " please try again in 10 minutes.")
 
+class deque(collections.deque):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def peek(self):
+        ret = self.pop()
+        self.append(ret)
+        return copy.deepcopy(ret)
+
+    def peekleft(self):
+        ret = self.popleft()
+        self.appendleft(ret)
+        return copy.deepcopy(ret)
+                                 
 class NotConnected(Exception):
     pass
         
