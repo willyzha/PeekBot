@@ -24,7 +24,7 @@ class TextToSpeech:
         self.ttsEnabled = True
         await self.bot.say(msg)
 
-    @tss.command(pass_context=True)
+    @tts.command(pass_context=True)
     async def off():
         """Turn off TextToSpeech"""
         server = ctx.message.server
