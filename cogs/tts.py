@@ -95,7 +95,23 @@ class TextToSpeech:
         if self.bot.is_voice_connected(server):
             return True
         return False
+
+class NotConnected(Exception):
+    pass
         
+class AuthorNotConnected(NotConnected):
+    pass
+
+class UnauthorizedConnect(Exception):
+    pass    
+    
+class UnauthorizedSpeak(Exception):
+    pass
+    
+class ChannelUserLimit(Exception):
+    pass
     
 def setup(bot):
     bot.add_cog(TextToSpeech(bot))
+    
+    
