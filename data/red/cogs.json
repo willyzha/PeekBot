@@ -8,5 +8,6 @@
     "cogs.image" : false,
     "cogs.mod" : true,
     "cogs.streams" : true,
-    "cogs.trivia" : true
+    "cogs.trivia" : true,
+	"cogs.tss" : false
 }
