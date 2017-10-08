@@ -91,6 +91,28 @@ class TextToSpeech:
             return False
         return True
         
+    def has_connect_perm(self, author, server):
+        channel = author.voice_channel
+
+        if channel:
+            is_admin = channel.permissions_for(server.me).administrator
+            if channel.user_limit == 0:
+                is_full = False
+            else:
+                is_full = len(channel.voice_members) >= channel.user_limit
+
+        if channel is None:
+            raise AuthorNotConnected
+        elif channel.permissions_for(server.me).connect is False:
+            raise UnauthorizedConnect
+        elif channel.permissions_for(server.me).speak is False:
+            raise UnauthorizedSpeak
+        elif is_full and not is_admin:
+            raise ChannelUserLimit
+        else:
+            return True
+        return False
+        
     def voice_connected(self, server):
         if self.bot.is_voice_connected(server):
             return True
