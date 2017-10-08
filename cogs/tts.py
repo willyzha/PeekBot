@@ -179,16 +179,16 @@ class TextToSpeech:
         if hasattr(voice_client, 'audio_player'):
             voice_client.audio_player.stop()
             
-    def _stop_downloader(self, server):
-        if server.id not in self.downloaders:
-            return
+#    def _stop_downloader(self, server):
+#        if server.id not in self.downloaders:
+#            return
 
         del self.downloaders[server.id]
         
     def _stop(self, server):
         self._setup_queue(server)
         self._stop_player(server)
-        self._stop_downloader(server)
+        #self._stop_downloader(server)
         self.bot.loop.create_task(self._update_bot_status())
     
     async def _stop_and_disconnect(self, server):
