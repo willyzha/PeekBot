@@ -4,6 +4,7 @@ from .utils.dataIO import dataIO
 from .utils import checks
 from .utils.chat_formatting import box
 from collections import Counter, defaultdict, namedtuple
+import collections
 import discord
 import time
 import os
