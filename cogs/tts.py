@@ -169,6 +169,27 @@ class TextToSpeech:
         voice_client = self.voice_client(server)
 
         await voice_client.disconnect()
+        
+    def _stop_player(self, server):
+        if not self.voice_connected(server):
+            return
+
+        voice_client = self.voice_client(server)
+
+        if hasattr(voice_client, 'audio_player'):
+            voice_client.audio_player.stop()
+            
+    def _stop_downloader(self, server):
+        if server.id not in self.downloaders:
+            return
+
+        del self.downloaders[server.id]
+        
+    def _stop(self, server):
+        self._setup_queue(server)
+        self._stop_player(server)
+        self._stop_downloader(server)
+        self.bot.loop.create_task(self._update_bot_status())
     
     async def _stop_and_disconnect(self, server):
         self._stop(server)
