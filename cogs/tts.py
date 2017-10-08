@@ -17,7 +17,7 @@ class TextToSpeech:
         self.ttsEnabled = False
 
     @commands.group(pass_context=True)
-    @checks.mod_or_permission(administrator=True)
+    @checks.mod_or_permissions(administrator=True)
     async def tts(self, ctx):
         server = ctx.message.server
         msg = box("TextToSpeech Enabled")
