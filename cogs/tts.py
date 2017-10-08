@@ -47,7 +47,7 @@ class TextToSpeech:
         
         if server.id not in self.queue:
             self._setup_queue(server)
-        self._stop_and_disconnect(server)
+        await self._stop_and_disconnect(server)
         msg = box("TextToSpeech Disabled")
         self.ttsEnabled = False
         await self.bot.say(msg)
