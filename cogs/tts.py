@@ -40,6 +40,7 @@ class TextToSpeech:
     async def on(self, ctx):
         """Turn on TextToSpeech"""
         server = ctx.message.server
+        author = ctx.message.author
         
         if self.is_playing(server):
             await ctx.invoke(self._queue, url=url)
