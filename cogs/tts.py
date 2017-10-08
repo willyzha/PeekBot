@@ -9,6 +9,7 @@ import time
 import os
 import asyncio
 import chardet
+from enum import Enum
 
 class QueueKey(Enum):
 	REPEAT = 1
