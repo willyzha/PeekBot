@@ -15,6 +15,7 @@ class TextToSpeech:
     def __init__(self, bot):
         self.bot = bot
         self.ttsEnabled = False
+        self.connect_timers = {}
 
     @commands.group(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(administrator=True)
@@ -117,6 +118,24 @@ class TextToSpeech:
         if self.bot.is_voice_connected(server):
             return True
         return False
+        
+    async def _join_voice_channel(self, channel):
+        server = channel.server
+        connect_time = self.connect_timers.get(server.id, 0)
+        if time.time() < connect_time:
+            diff = int(connect_time - time.time())
+            raise ConnectTimeout("You are on connect cooldown for another {}"
+                                 " seconds.".format(diff))
+        if server.id in self.queue:
+            self.queue[server.id][QueueKey.VOICE_CHANNEL_ID] = channel.id
+        try:
+            await asyncio.wait_for(self.bot.join_voice_channel(channel),
+                                   timeout=5, loop=self.bot.loop)
+        except asyncio.futures.TimeoutError as e:
+            log.exception(e)
+            self.connect_timers[server.id] = time.time() + 300
+            raise ConnectTimeout("We timed out connecting to a voice channel,"
+                                 " please try again in 10 minutes.")
 
 class NotConnected(Exception):
     pass
