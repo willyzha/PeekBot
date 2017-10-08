@@ -10,12 +10,22 @@ import os
 import asyncio
 import chardet
 
+class QueueKey(Enum):
+	REPEAT = 1
+	PLAYLIST = 2
+	VOICE_CHANNEL_ID = 3
+	QUEUE = 4
+	TEMP_QUEUE = 5
+	NOW_PLAYING = 6
+	NOW_PLAYING_CHANNEL = 7
+
 class TextToSpeech:
     """General commands."""
     def __init__(self, bot):
         self.bot = bot
         self.ttsEnabled = False
         self.connect_timers = {}
+        self.queue = {}
 
     @commands.group(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(administrator=True)
@@ -33,6 +43,10 @@ class TextToSpeech:
     async def off(self, ctx):
         """Turn off TextToSpeech"""
         server = ctx.message.server
+        
+        if server.id not in self.queue:
+            self._setup_queue(server)
+        
         msg = box("TextToSpeech Disabled")
         self.ttsEnabled = False
         await self.bot.say(msg)
@@ -43,6 +57,9 @@ class TextToSpeech:
         server = ctx.message.server
         author = ctx.message.author
         voice_channel = author.voice_channel
+        
+        if server.id not in self.queue:
+            self._setup_queue(server)
         
         if self.is_playing(server):
             await ctx.invoke(self._queue, url=url)
@@ -120,6 +137,12 @@ class TextToSpeech:
             return True
         return False
         
+    def _setup_queue(self, server):
+        self.queue[server.id] = {QueueKey.REPEAT: False, QueueKey.PLAYLIST: False,
+                                 QueueKey.VOICE_CHANNEL_ID: None,
+                                 QueueKey.QUEUE: deque(), QueueKey.TEMP_QUEUE: deque(),
+                                 QueueKey.NOW_PLAYING: None, QueueKey.NOW_PLAYING_CHANNEL: None}
+        
     async def _join_voice_channel(self, channel):
         server = channel.server
         connect_time = self.connect_timers.get(server.id, 0)
@@ -151,7 +174,7 @@ class UnauthorizedSpeak(Exception):
     pass
     
 class ChannelUserLimit(Exception):
-    pass
+    pass   
     
 def setup(bot):
     bot.add_cog(TextToSpeech(bot))
