@@ -75,10 +75,9 @@ class TextToSpeech:
         msg = box("TextToSpeech Enabled")
         self.ttsEnabled = True
         await self.bot.say(msg)
-        
+
 #    @commands.command(pass_context=True, no_pm=True)
 #    async def connect(self, ctx, *, url_or_search_terms):
-
     
     def is_playing(self, server):
         if not self.voice_connected(server):
