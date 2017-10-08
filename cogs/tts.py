@@ -47,7 +47,7 @@ class TextToSpeech:
         
         if server.id not in self.queue:
             self._setup_queue(server)
-        
+        self._stop_and_disconnect(server)
         msg = box("TextToSpeech Disabled")
         self.ttsEnabled = False
         await self.bot.say(msg)
@@ -161,6 +161,18 @@ class TextToSpeech:
             self.connect_timers[server.id] = time.time() + 300
             raise ConnectTimeout("We timed out connecting to a voice channel,"
                                  " please try again in 10 minutes.")
+    
+    async def _disconnect_voice_client(self, server):
+        if not self.voice_connected(server):
+            return
+
+        voice_client = self.voice_client(server)
+
+        await voice_client.disconnect()
+    
+    async def _stop_and_disconnect(self, server):
+        self._stop(server)
+        await self._disconnect_voice_client(server)
 
 class deque(collections.deque):
     def __init__(self, *args, **kwargs):
