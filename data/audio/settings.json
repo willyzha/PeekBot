@@ -1,5 +1,5 @@
 {
-    "AVCONV" : false,
+    "AVCONV" : true,
     "MAX_CACHE" : 0,
     "MAX_LENGTH" : 3700,
     "SERVERS" : {},
