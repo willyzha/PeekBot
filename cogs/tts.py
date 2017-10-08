@@ -16,7 +16,7 @@ class TextToSpeech:
         self.bot = bot
         self.ttsEnabled = False
 
-    @commands.group(pass_context=True)
+    @commands.group(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(administrator=True)
     async def tts(self, ctx):
         server = ctx.message.server
