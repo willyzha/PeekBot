@@ -182,8 +182,8 @@ class TextToSpeech:
 #    def _stop_downloader(self, server):
 #        if server.id not in self.downloaders:
 #            return
-
-        del self.downloaders[server.id]
+#
+#        del self.downloaders[server.id]
         
     def _stop(self, server):
         self._setup_queue(server)
