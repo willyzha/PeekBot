@@ -10,7 +10,7 @@ import time
 import os
 import asyncio
 import chardet
-import gTTS
+from gtts import gTTS
 from enum import Enum
 
 log = logging.getLogger("red.tts")
