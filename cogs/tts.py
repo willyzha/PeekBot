@@ -40,7 +40,7 @@ class TextToSpeech:
             server = ctx.message.server
             if self.ttsEnabled:
                 msg = box("TextToSpeech is currently enabled")
-                voice_client = await self._create_ffmpeg_player(server, "test.mp4", local=True, start_time=None, end_time=None)
+                voice_client = await self._create_ffmpeg_player(server, "test.mp3", local=True, start_time=None, end_time=None)
 
                 voice_client.audio_player.start()
             else:
