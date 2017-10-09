@@ -39,6 +39,10 @@ class TextToSpeech:
             tts = gTTS(text=message.content, lang='en', slow=True)
             ttsFileName = os.path.join(self.local_playlist_path, "tts.mp3")
             tts.save(ttsFileName)
+            
+            voice_client = await self._create_ffmpeg_player(server, "tts.mp3", local=True, start_time=None, end_time=None)
+
+            voice_client.audio_player.start()
         
     @commands.group(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(administrator=True)
@@ -48,9 +52,6 @@ class TextToSpeech:
             server = ctx.message.server
             if self.ttsEnabled:
                 msg = box("TextToSpeech is currently enabled")
-                voice_client = await self._create_ffmpeg_player(server, "test.mp3", local=True, start_time=None, end_time=None)
-
-                voice_client.audio_player.start()
             else:
                 msg = box("TextToSpeech is currently disabled")
             await self.bot.say(msg)
