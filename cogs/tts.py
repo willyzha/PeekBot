@@ -33,14 +33,15 @@ class TextToSpeech:
         self.connect_timers = {}
         self.queue = {}
 
+    @commands.group(pass_context=True, no_pm=True)
     async def on_message(self, message):
         if self.ttsEnabled:
-            print(message.content)
+            print(message.content,)
             tts = gTTS(text=message.content, lang='en', slow=True)
             ttsFileName = os.path.join(self.local_playlist_path, "tts.mp3")
             tts.save(ttsFileName)
             
-            voice_client = await self._create_ffmpeg_player(server, "tts.mp3", local=True, start_time=None, end_time=None)
+            voice_client = await self._create_ffmpeg_player(message.server, "tts.mp3", local=True, start_time=None, end_time=None)
 
             voice_client.audio_player.start()
         
