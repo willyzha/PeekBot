@@ -259,7 +259,7 @@ class TextToSpeech:
             song_filename, use_avconv=use_avconv, options=options, before_options=before_options)
 
         # Set initial volume
-        vol = self.get_server_settings(server)['VOLUME'] / 100
+        vol = 50/100#self.get_server_settings(server)['VOLUME'] / 100
         voice_client.audio_player.volume = vol
 
         return voice_client  # Just for ease of use, it's modified in-place
