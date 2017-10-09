@@ -25,6 +25,7 @@ class TextToSpeech:
     def __init__(self, bot):
         self.bot = bot
         self.ttsEnabled = False
+        self.local_playlist_path = "data/tts"
         self.connect_timers = {}
         self.queue = {}
 
