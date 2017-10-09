@@ -3,6 +3,7 @@ from random import choice
 from .utils.dataIO import dataIO
 from .utils import checks
 from .utils.chat_formatting import box
+import logging
 import collections
 import discord
 import time
@@ -10,6 +11,8 @@ import os
 import asyncio
 import chardet
 from enum import Enum
+
+log = logging.getLogger("red.tts")
 
 class QueueKey(Enum):
 	REPEAT = 1
