@@ -197,6 +197,65 @@ class TextToSpeech:
         
     def voice_client(self, server):
         return self.bot.voice_client_in(server)
+        
+    async def _create_ffmpeg_player(self, server, filename, local=False, start_time=None, end_time=None):
+        """This function will guarantee we have a valid voice client,
+            even if one doesn't exist previously."""
+        voice_channel_id = self.queue[server.id][QueueKey.VOICE_CHANNEL_ID]
+        voice_client = self.voice_client(server)
+
+        if voice_client is None:
+            log.debug("not connected when we should be in sid {}".format(
+                server.id))
+            to_connect = self.bot.get_channel(voice_channel_id)
+            if to_connect is None:
+                raise VoiceNotConnected("Okay somehow we're not connected and"
+                                        " we have no valid channel to"
+                                        " reconnect to. In other words...LOL"
+                                        " REKT.")
+            log.debug("valid reconnect channel for sid"
+                      " {}, reconnecting...".format(server.id))
+            await self._join_voice_channel(to_connect)  # SHIT
+        elif voice_client.channel.id != voice_channel_id:
+            # This was decided at 3:45 EST in #advanced-testing by 26
+            self.queue[server.id][QueueKey.VOICE_CHANNEL_ID] = voice_client.channel.id
+            log.debug("reconnect chan id for sid {} is wrong, fixing".format(
+                server.id))
+
+        # Okay if we reach here we definitively have a working voice_client
+
+        if local:
+            song_filename = os.path.join(self.local_playlist_path, filename)
+        else:
+            song_filename = os.path.join(self.cache_path, filename)
+
+        use_avconv = self.settings["AVCONV"]
+        options = '-b:a 64k -bufsize 64k'
+        before_options = ''
+
+        if start_time:
+            before_options += '-ss {}'.format(start_time)
+        if end_time:
+            options += ' -to {} -copyts'.format(end_time)
+
+        try:
+            voice_client.audio_player.process.kill()
+            log.debug("killed old player")
+        except AttributeError:
+            pass
+        except ProcessLookupError:
+            pass
+
+        log.debug("making player on sid {}".format(server.id))
+
+        voice_client.audio_player = voice_client.create_ffmpeg_player(
+            song_filename, use_avconv=use_avconv, options=options, before_options=before_options)
+
+        # Set initial volume
+        vol = self.get_server_settings(server)['VOLUME'] / 100
+        voice_client.audio_player.volume = vol
+
+        return voice_client  # Just for ease of use, it's modified in-place
 
 class deque(collections.deque):
     def __init__(self, *args, **kwargs):
