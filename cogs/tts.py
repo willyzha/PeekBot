@@ -10,6 +10,7 @@ import time
 import os
 import asyncio
 import chardet
+import gTTS
 from enum import Enum
 
 log = logging.getLogger("red.tts")
@@ -32,6 +33,13 @@ class TextToSpeech:
         self.connect_timers = {}
         self.queue = {}
 
+    async def on_message(self, message):
+        if self.ttsEnabled:
+            print(message)
+            tts = gTTS(text=message, lang='en', slow=True)
+            ttsFileName = os.path.join(self.local_playlist_path, "tts.mp3")
+            tts.save(ttsFileName)
+        
     @commands.group(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(administrator=True)
     async def tts(self, ctx):
