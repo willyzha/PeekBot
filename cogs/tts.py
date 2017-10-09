@@ -33,7 +33,6 @@ class TextToSpeech:
         self.connect_timers = {}
         self.queue = {}
 
-    @commands.group(pass_context=True, no_pm=True)
     async def on_message(self, message):
         if self.ttsEnabled:
             print(message.content,)
