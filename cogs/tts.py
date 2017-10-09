@@ -33,8 +33,7 @@ class TextToSpeech:
         self.connect_timers = {}
         self.queue = {}
 
-    @client.event
-    async def on_message(message):
+    async def on_message(self, message):
         if self.ttsEnabled:
             print(message)
             tts = gTTS(text=message, lang='en', slow=True)
