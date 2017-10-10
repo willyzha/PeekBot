@@ -7,6 +7,7 @@ import logging
 import collections
 import discord
 import time
+import copy
 import os
 import asyncio
 import uuid
@@ -270,23 +271,24 @@ class TextToSpeech:
 
     async def gTTS_queue_manager(self, sid):
         server = self.bot.get_server(sid)
-    
+        queue = self.queue[server.id][QueueKey.QUEUE]
         assert queue is self.queue[server.id][QueueKey.QUEUE]
         
-        while len(queue) > 0
+        while len(queue) > 0:
             ttsMessage = queue.popleft()
             tts = gTTS(text=ttsMessage, lang='en', slow=True)
             unique_filename = str(uuid.uuid4()) + ".mp3"
             ttsFileName = os.path.join(self.local_playlist_path, unique_filename)
             tts.save(ttsFileName)
             
-            self.queue[server.id][QueueKey.TEMP_QUEUE].append(ttsFileName)
+            self.queue[server.id][QueueKey.TEMP_QUEUE].append(unique_filename)
 
     async def gTTS_queue_scheduler(self):
-        while self == self.bot.get_cog('tts'):
+        while self == self.bot.get_cog('TextToSpeech'):
             tasks = []
             queue = copy.deepcopy(self.queue)
             for sid in queue:
+                print("gTTS:  " + str(queue[sid][QueueKey.QUEUE]))
                 if len(queue[sid][QueueKey.QUEUE]) == 0:
                     continue
                 # log.debug("scheduler found a non-empty queue"
@@ -301,20 +303,21 @@ class TextToSpeech:
             
     async def voice_queue_manager(self, sid):
         server = self.bot.get_server(sid)
-    
-        assert queue is self.queue[server.id][QueueKey.QUEUE]
+        queue = self.queue[server.id][QueueKey.TEMP_QUEUE]
+        assert queue is self.queue[server.id][QueueKey.TEMP_QUEUE]
         
-        for len(queue) > 0:
+        while len(queue) > 0:
             filename = queue.popleft()
-            voice_client = await self._create_ffmpeg_player(message.server, filename, local=True, start_time=None, end_time=None)
+            voice_client = await self._create_ffmpeg_player(server, filename, local=True, start_time=None, end_time=None)
 
             voice_client.audio_player.start()
             
     async def voice_queue_scheduler(self):
-        while self == self.bot.get_cog('tts'):
+        while self == self.bot.get_cog('TextToSpeech'):
             tasks = []
             queue = copy.deepcopy(self.queue)
             for sid in queue:
+                print("voice: " + str(queue[sid][QueueKey.TEMP_QUEUE]))
                 if len(queue[sid][QueueKey.TEMP_QUEUE]) == 0:
                     continue
                 # log.debug("scheduler found a non-empty queue"
