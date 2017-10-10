@@ -106,8 +106,8 @@ class TextToSpeech:
                 await self._join_voice_channel(voice_channel)
         
         msg = box("TextToSpeech Enabled")
-        self.ttsEnabled = True
         await self.bot.say(msg)
+        self.ttsEnabled = True
 
 #    @commands.command(pass_context=True, no_pm=True)
 #    async def connect(self, ctx, *, url_or_search_terms):
@@ -308,10 +308,13 @@ class TextToSpeech:
         
         while len(queue) > 0:
             filename = queue.popleft()
-            voice_client = await self._create_ffmpeg_player(server, filename, local=True, start_time=None, end_time=None)
+            print("pop " + filename) 
 
+            voice_client = await self._create_ffmpeg_player(server, filename, local=True, start_time=None, end_time=None)
+            print("create voice client")
             voice_client.audio_player.start()
-            
+            print("start voice client")
+
     async def voice_queue_scheduler(self):
         while self == self.bot.get_cog('TextToSpeech'):
             tasks = []
