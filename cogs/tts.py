@@ -277,7 +277,7 @@ class TextToSpeech:
         
         
         ttsMessage = queue.popleft()
-        tts = gTTS(text=ttsMessage, lang='en', slow=True)
+        tts = gTTS(text=ttsMessage, lang='en', slow=False)
         unique_filename = str(uuid.uuid4()) + ".mp3"
         ttsFileName = os.path.join(self.local_playlist_path, unique_filename)
         tts.save(ttsFileName)
@@ -338,8 +338,9 @@ class TextToSpeech:
             await asyncio.sleep(1)
             
     def mp3_cleanup(self):
-        file_to_remove = os.path.join(self.local_playlist_path, self.remove_queue.popleft())
-        os.remove(file_to_remove)
+        if len(self.remove_queue) > 0:
+            file_to_remove = os.path.join(self.local_playlist_path, self.remove_queue.popleft())
+            os.remove(file_to_remove)
 
         
 class deque(collections.deque):
