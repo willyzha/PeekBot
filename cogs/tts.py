@@ -36,7 +36,7 @@ class TextToSpeech:
     async def on_message(self, message):
         if self.ttsEnabled:
             print(message.content,)
-            tts = gTTS(text=message.content, lang='en', slow=True)
+            tts = gTTS(text=message.content, lang='en', slow=False)
             ttsFileName = os.path.join(self.local_playlist_path, "tts.mp3")
             tts.save(ttsFileName)
             
