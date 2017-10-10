@@ -34,6 +34,7 @@ class TextToSpeech:
         self.local_playlist_path = "data/tts"
         self.connect_timers = {}
         self.queue = {}
+        self.remove_queue = deque()
 
     async def on_message(self, message):
         if self.ttsEnabled:
@@ -312,8 +313,9 @@ class TextToSpeech:
 
             voice_client = await self._create_ffmpeg_player(server, filename, local=True, start_time=None, end_time=None)
             #print("create voice client")
-            #voice_client.audio_player.start()
-            print("start voice client")
+            voice_client.audio_player.start()
+            #print("start voice client")
+            self.remove_queue.append(filename)
             #os.remove(os.path.join(self.local_playlist_path, filename))
 
     async def voice_queue_scheduler(self):
@@ -321,8 +323,9 @@ class TextToSpeech:
             tasks = []
             queue = copy.deepcopy(self.queue)
             for sid in queue:
-                print("voice: " + str(queue[sid][QueueKey.TEMP_QUEUE]))
+                #print("voice: " + str(queue[sid][QueueKey.TEMP_QUEUE]))
                 if len(queue[sid][QueueKey.TEMP_QUEUE]) == 0:
+                    self.mp3_cleanup()
                     continue
                 # log.debug("scheduler found a non-empty queue"
                 #           " for sid: {}".format(sid))
@@ -333,6 +336,11 @@ class TextToSpeech:
                 completed = [t.done() for t in tasks]
                 await asyncio.sleep(0.5)
             await asyncio.sleep(1)
+            
+    def mp3_cleanup(self):
+        file_to_remove = os.path.join(self.local_playlist_path, self.remove_queue.popleft())
+        os.remove(file_to_remove)
+
         
 class deque(collections.deque):
     def __init__(self, *args, **kwargs):
