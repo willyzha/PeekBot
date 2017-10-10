@@ -314,6 +314,7 @@ class TextToSpeech:
             print("create voice client")
             voice_client.audio_player.start()
             print("start voice client")
+            os.remove(os.path.join(self.local_playlist_path, filename))
 
     async def voice_queue_scheduler(self):
         while self == self.bot.get_cog('TextToSpeech'):
