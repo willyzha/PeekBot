@@ -37,7 +37,7 @@ class TextToSpeech:
         self.remove_queue = deque()
 
     async def on_message(self, message):
-        if self.ttsEnabled:
+        if self.ttsEnabled and not message.tts and not message.author.bot:
             sid = message.server.id
             self.queue[sid][QueueKey.QUEUE].append(message.content)
                     
