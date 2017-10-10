@@ -274,7 +274,7 @@ class TextToSpeech:
         queue = self.queue[server.id][QueueKey.QUEUE]
         assert queue is self.queue[server.id][QueueKey.QUEUE]
         
-        while len(queue) > 0:
+        if not self.is_playing(server):
             ttsMessage = queue.popleft()
             tts = gTTS(text=ttsMessage, lang='en', slow=True)
             unique_filename = str(uuid.uuid4()) + ".mp3"
