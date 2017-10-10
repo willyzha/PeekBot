@@ -274,7 +274,7 @@ class TextToSpeech:
         queue = self.queue[server.id][QueueKey.QUEUE]
         assert queue is self.queue[server.id][QueueKey.QUEUE]
         
-        if not self.is_playing(server):
+        while len(queue) > 0:
             ttsMessage = queue.popleft()
             tts = gTTS(text=ttsMessage, lang='en', slow=True)
             unique_filename = str(uuid.uuid4()) + ".mp3"
@@ -306,7 +306,7 @@ class TextToSpeech:
         queue = self.queue[server.id][QueueKey.TEMP_QUEUE]
         assert queue is self.queue[server.id][QueueKey.TEMP_QUEUE]
         
-        while len(queue) > 0:
+        if not self.is_playing(server):
             filename = queue.popleft()
             print("pop " + filename) 
 
@@ -314,7 +314,7 @@ class TextToSpeech:
             print("create voice client")
             voice_client.audio_player.start()
             print("start voice client")
-            os.remove(os.path.join(self.local_playlist_path, filename))
+            #os.remove(os.path.join(self.local_playlist_path, filename))
 
     async def voice_queue_scheduler(self):
         while self == self.bot.get_cog('TextToSpeech'):
