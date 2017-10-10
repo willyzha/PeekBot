@@ -274,21 +274,21 @@ class TextToSpeech:
         queue = self.queue[server.id][QueueKey.QUEUE]
         assert queue is self.queue[server.id][QueueKey.QUEUE]
         
-        while len(queue) > 0:
-            ttsMessage = queue.popleft()
-            tts = gTTS(text=ttsMessage, lang='en', slow=True)
-            unique_filename = str(uuid.uuid4()) + ".mp3"
-            ttsFileName = os.path.join(self.local_playlist_path, unique_filename)
-            tts.save(ttsFileName)
+        
+        ttsMessage = queue.popleft()
+        tts = gTTS(text=ttsMessage, lang='en', slow=True)
+        unique_filename = str(uuid.uuid4()) + ".mp3"
+        ttsFileName = os.path.join(self.local_playlist_path, unique_filename)
+        tts.save(ttsFileName)
             
-            self.queue[server.id][QueueKey.TEMP_QUEUE].append(unique_filename)
+        self.queue[server.id][QueueKey.TEMP_QUEUE].append(unique_filename)
 
     async def gTTS_queue_scheduler(self):
         while self == self.bot.get_cog('TextToSpeech'):
             tasks = []
             queue = copy.deepcopy(self.queue)
             for sid in queue:
-                print("gTTS:  " + str(queue[sid][QueueKey.QUEUE]))
+                #print("gTTS:  " + str(queue[sid][QueueKey.QUEUE]))
                 if len(queue[sid][QueueKey.QUEUE]) == 0:
                     continue
                 # log.debug("scheduler found a non-empty queue"
@@ -308,11 +308,11 @@ class TextToSpeech:
         
         if not self.is_playing(server):
             filename = queue.popleft()
-            print("pop " + filename) 
+            #print("pop " + filename) 
 
             voice_client = await self._create_ffmpeg_player(server, filename, local=True, start_time=None, end_time=None)
-            print("create voice client")
-            voice_client.audio_player.start()
+            #print("create voice client")
+            #voice_client.audio_player.start()
             print("start voice client")
             #os.remove(os.path.join(self.local_playlist_path, filename))
 
