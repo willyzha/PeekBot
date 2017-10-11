@@ -333,11 +333,14 @@ class TextToSpeech:
             
     async def voice_queue_manager(self, sid):
         server = self.bot.get_server(sid)
+        voice_channel_id = self.queue[server.id][QueueKey.VOICE_CHANNEL_ID]
+        channel = self.bot.get_channel(voice_channel_id)
         queue = self.queue[server.id][QueueKey.TEMP_QUEUE]
         assert queue is self.queue[server.id][QueueKey.TEMP_QUEUE]
         
         if not self.is_playing(server) and self.queue[server.id][QueueKey.TSS_ENABLED]:
             if self.voice_client(server) is None:
+                await self._join_voice_channel(channel)
                 return
 
             filename = queue.popleft()
