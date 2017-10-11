@@ -12,6 +12,7 @@ import os
 import asyncio
 import uuid
 import chardet
+import re
 from gtts import gTTS
 from enum import Enum
 
@@ -41,7 +42,7 @@ class TextToSpeech:
         if self.ttsEnabled and not message.tts and not message.author.bot:
             sid = message.server.id
             
-            for text in _tokenize(message.content, 10):            
+            for text in self._tokenize(message.content, 10):            
                 self.queue[sid][QueueKey.QUEUE].append(text)
                     
     def _tokenize(self, text, max_size):
@@ -52,10 +53,7 @@ class TextToSpeech:
         pattern = '|'.join(punc_list)
         parts = re.split(pattern, text)
 
-        min_parts = []
-        for p in parts:
-            min_parts += self._minimize(p, " ", max_size)
-        return min_parts
+        return parts
                     
     @commands.group(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(administrator=True)
