@@ -35,6 +35,7 @@ class TextToSpeech:
         self.connect_timers = {}
         self.queue = {}
         self.remove_queue = deque()
+        self.mp3_remove_all()
 
     async def on_message(self, message):
         if self.ttsEnabled and not message.tts and not message.author.bot:
@@ -299,15 +300,15 @@ class TextToSpeech:
             completed = [t.done() for t in tasks]
             while not all(completed):
                 completed = [t.done() for t in tasks]
-                await asyncio.sleep(0.5)
-            await asyncio.sleep(1)
+                await asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
             
     async def voice_queue_manager(self, sid):
         server = self.bot.get_server(sid)
         queue = self.queue[server.id][QueueKey.TEMP_QUEUE]
         assert queue is self.queue[server.id][QueueKey.TEMP_QUEUE]
         
-        if not self.is_playing(server):
+        if not self.is_playing(server) and self.ttsEnabled:
             filename = queue.popleft()
             #print("pop " + filename) 
 
@@ -342,6 +343,10 @@ class TextToSpeech:
             file_to_remove = os.path.join(self.local_playlist_path, self.remove_queue.popleft())
             os.remove(file_to_remove)
 
+    def mp3_remove_all(self):
+        for file in os.listdir(self.local_playlist_path):
+            if file.endswith(".mp3"):
+                os.remove(os.path.join(self.local_playlist_path, file))
         
 class deque(collections.deque):
     def __init__(self, *args, **kwargs):
