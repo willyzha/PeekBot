@@ -33,7 +33,6 @@ class TextToSpeech:
     """General commands."""
     def __init__(self, bot):
         self.bot = bot
-        self.ttsEnabled = False
         self.local_playlist_path = "data/tts"
         self.connect_timers = {}
         self.queue = {}
@@ -44,8 +43,10 @@ class TextToSpeech:
     async def on_message(self, message):
         server = message.server
         sid = server.id
+        print(self.queue[sid][QueueKey.TSS_ENABLED])
         if self.queue[sid][QueueKey.TSS_ENABLED] and not message.tts and not message.author.bot:
             for text in self._tokenize(message.content, 10):
+                print(text)
                 if text.strip() != "":
                     if self.queue[server.id][QueueKey.LAST_MESSAGE_USER] == message.author.id:
                         self.queue[sid][QueueKey.QUEUE].append(text.strip())
@@ -335,7 +336,7 @@ class TextToSpeech:
         queue = self.queue[server.id][QueueKey.TEMP_QUEUE]
         assert queue is self.queue[server.id][QueueKey.TEMP_QUEUE]
         
-        if not self.is_playing(server) and self.ttsEnabled:
+        if not self.is_playing(server) and self.queue[server.id][QueueKey.TSS_ENABLED]:
             if self.voice_client(server) is None:
                 return
 
