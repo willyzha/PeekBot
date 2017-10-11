@@ -19,13 +19,14 @@ from enum import Enum
 log = logging.getLogger("red.tts")
 
 class QueueKey(Enum):
-	REPEAT = 1
-	PLAYLIST = 2
-	VOICE_CHANNEL_ID = 3
-	QUEUE = 4
-	TEMP_QUEUE = 5
-	NOW_PLAYING = 6
-	NOW_PLAYING_CHANNEL = 7
+    REPEAT = 1
+    PLAYLIST = 2
+    VOICE_CHANNEL_ID = 3
+    QUEUE = 4
+    TEMP_QUEUE = 5
+    NOW_PLAYING = 6
+    NOW_PLAYING_CHANNEL = 7
+    LAST_MESSAGE_USER = 8   
 
 class TextToSpeech:
     """General commands."""
@@ -33,19 +34,25 @@ class TextToSpeech:
         self.bot = bot
         self.ttsEnabled = False
         self.local_playlist_path = "data/tts"
+        self.settings = dataIO.load_json("data/tts/user.json")
         self.connect_timers = {}
         self.queue = {}
         self.remove_queue = deque()
+        self.user_list = deque()
         self.mp3_remove_all()
 
     async def on_message(self, message):
         if self.ttsEnabled and not message.tts and not message.author.bot:
             sid = message.server.id
-            
+            server = message.server
             for text in self._tokenize(message.content, 10):
                 if text.strip() != "":
-
-                    self.queue[sid][QueueKey.QUEUE].append(text.strip())
+                    if self.queue[server.id][LAST_MESSAGE_USER] == message.author.id:
+                        self.queue[sid][QueueKey.QUEUE].append(text.strip())
+                    else:
+                        username = message.author.name
+                        self.queue[sid][QueueKey.QUEUE].append(username + " says: " + text.strip())
+                        self.queue[server.id][LAST_MESSAGE_USER] = message.author.id
                     
     def _tokenize(self, text, max_size):
         """ Tokenizer on basic punctuation """
@@ -171,7 +178,8 @@ class TextToSpeech:
         self.queue[server.id] = {QueueKey.REPEAT: False, QueueKey.PLAYLIST: False,
                                  QueueKey.VOICE_CHANNEL_ID: None,
                                  QueueKey.QUEUE: deque(), QueueKey.TEMP_QUEUE: deque(),
-                                 QueueKey.NOW_PLAYING: None, QueueKey.NOW_PLAYING_CHANNEL: None}
+                                 QueueKey.NOW_PLAYING: None, QueueKey.NOW_PLAYING_CHANNEL: None,
+                                 QueueKey.LAST_MESSAGE_USER: ""}
         
     async def _join_voice_channel(self, channel):
         server = channel.server
