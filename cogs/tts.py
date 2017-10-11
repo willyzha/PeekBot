@@ -40,7 +40,22 @@ class TextToSpeech:
     async def on_message(self, message):
         if self.ttsEnabled and not message.tts and not message.author.bot:
             sid = message.server.id
-            self.queue[sid][QueueKey.QUEUE].append(message.content)
+            
+            for text in _tokenize(message.content, 10):            
+                self.queue[sid][QueueKey.QUEUE].append(text)
+                    
+    def _tokenize(self, text, max_size):
+        """ Tokenizer on basic punctuation """
+        
+        punc = "¡!()[]¿?.,،;:—。、：？！\n"
+        punc_list = [re.escape(c) for c in punc]
+        pattern = '|'.join(punc_list)
+        parts = re.split(pattern, text)
+
+        min_parts = []
+        for p in parts:
+            min_parts += self._minimize(p, " ", max_size)
+        return min_parts
                     
     @commands.group(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(administrator=True)
