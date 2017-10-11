@@ -42,8 +42,10 @@ class TextToSpeech:
         if self.ttsEnabled and not message.tts and not message.author.bot:
             sid = message.server.id
             
-            for text in self._tokenize(message.content, 10):            
-                self.queue[sid][QueueKey.QUEUE].append(text)
+            for text in self._tokenize(message.content, 10):
+                if text.strip() != "":
+
+                    self.queue[sid][QueueKey.QUEUE].append(text.strip())
                     
     def _tokenize(self, text, max_size):
         """ Tokenizer on basic punctuation """
@@ -348,8 +350,8 @@ class TextToSpeech:
             completed = [t.done() for t in tasks]
             while not all(completed):
                 completed = [t.done() for t in tasks]
-                await asyncio.sleep(0.5)
-            await asyncio.sleep(1)
+                await asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
             
     def mp3_cleanup(self):
         if len(self.remove_queue) > 0:
