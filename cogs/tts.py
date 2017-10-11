@@ -284,7 +284,7 @@ class TextToSpeech:
             pass
 
         log.debug("making player on sid {}".format(server.id))
-
+        print(voice_client)
         voice_client.audio_player = voice_client.create_ffmpeg_player(
             song_filename, use_avconv=use_avconv, options=options, before_options=before_options)
 
@@ -328,6 +328,10 @@ class TextToSpeech:
             
     async def voice_queue_manager(self, sid):
         server = self.bot.get_server(sid)
+
+        if self.voice_client(server) is None:
+            return
+
         queue = self.queue[server.id][QueueKey.TEMP_QUEUE]
         assert queue is self.queue[server.id][QueueKey.TEMP_QUEUE]
         
