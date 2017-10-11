@@ -34,7 +34,6 @@ class TextToSpeech:
         self.bot = bot
         self.ttsEnabled = False
         self.local_playlist_path = "data/tts"
-        self.settings = dataIO.load_json("data/tts/user.json")
         self.connect_timers = {}
         self.queue = {}
         self.remove_queue = deque()
@@ -47,12 +46,12 @@ class TextToSpeech:
             server = message.server
             for text in self._tokenize(message.content, 10):
                 if text.strip() != "":
-                    if self.queue[server.id][LAST_MESSAGE_USER] == message.author.id:
+                    if self.queue[server.id][QueueKey.LAST_MESSAGE_USER] == message.author.id:
                         self.queue[sid][QueueKey.QUEUE].append(text.strip())
                     else:
                         username = message.author.name
                         self.queue[sid][QueueKey.QUEUE].append(username + " says: " + text.strip())
-                        self.queue[server.id][LAST_MESSAGE_USER] = message.author.id
+                        self.queue[server.id][QueueKey.LAST_MESSAGE_USER] = message.author.id
                     
     def _tokenize(self, text, max_size):
         """ Tokenizer on basic punctuation """
@@ -179,7 +178,7 @@ class TextToSpeech:
                                  QueueKey.VOICE_CHANNEL_ID: None,
                                  QueueKey.QUEUE: deque(), QueueKey.TEMP_QUEUE: deque(),
                                  QueueKey.NOW_PLAYING: None, QueueKey.NOW_PLAYING_CHANNEL: None,
-                                 QueueKey.LAST_MESSAGE_USER: ""}
+                                 QueueKey.LAST_MESSAGE_USER: 0}
         
     async def _join_voice_channel(self, channel):
         server = channel.server
@@ -328,14 +327,13 @@ class TextToSpeech:
             
     async def voice_queue_manager(self, sid):
         server = self.bot.get_server(sid)
-
-        if self.voice_client(server) is None:
-            return
-
         queue = self.queue[server.id][QueueKey.TEMP_QUEUE]
         assert queue is self.queue[server.id][QueueKey.TEMP_QUEUE]
         
         if not self.is_playing(server) and self.ttsEnabled:
+            if self.voice_client(server) is None:
+                return
+
             filename = queue.popleft()
             #print("pop " + filename) 
 
