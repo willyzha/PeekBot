@@ -26,7 +26,8 @@ class QueueKey(Enum):
     TEMP_QUEUE = 5
     NOW_PLAYING = 6
     NOW_PLAYING_CHANNEL = 7
-    LAST_MESSAGE_USER = 8   
+    LAST_MESSAGE_USER = 8
+    TSS_ENABLED = 9
 
 class TextToSpeech:
     """General commands."""
@@ -42,9 +43,9 @@ class TextToSpeech:
         self.mp3_remove_all()
 
     async def on_message(self, message):
-        if self.ttsEnabled and not message.tts and not message.author.bot:
-            sid = message.server.id
-            server = message.server
+        server = message.server
+        sid = server.id
+        if self.queue[sid][QueueKey.TSS_ENABLED] and not message.tts and not message.author.bot:
             for text in self._tokenize(message.content, 10):
                 if text.strip() != "":
                     if self.queue[server.id][LAST_MESSAGE_USER] == message.author.id:
@@ -70,7 +71,7 @@ class TextToSpeech:
         """Gives the current status of TextToSpeech"""
         if ctx.invoked_subcommand is None:
             server = ctx.message.server
-            if self.ttsEnabled:
+            if self.queue[server.id][QueueKey.TSS_ENABLED]:
                 msg = box("TextToSpeech is currently enabled")
             else:
                 msg = box("TextToSpeech is currently disabled")
@@ -85,7 +86,7 @@ class TextToSpeech:
             self._setup_queue(server)
         await self._stop_and_disconnect(server)
         msg = box("TextToSpeech Disabled")
-        self.ttsEnabled = False
+        self.queue[server.id][QueueKey.TSS_ENABLED] = False
         await self.bot.say(msg)
         
     @tts.command(pass_context=True)
@@ -131,7 +132,7 @@ class TextToSpeech:
         
         msg = box("TextToSpeech Enabled")
         await self.bot.say(msg)
-        self.ttsEnabled = True
+        self.queue[server.id][QueueKey.TSS_ENABLED] = True
 
 #    @commands.command(pass_context=True, no_pm=True)
 #    async def connect(self, ctx, *, url_or_search_terms):
@@ -179,7 +180,8 @@ class TextToSpeech:
                                  QueueKey.VOICE_CHANNEL_ID: None,
                                  QueueKey.QUEUE: deque(), QueueKey.TEMP_QUEUE: deque(),
                                  QueueKey.NOW_PLAYING: None, QueueKey.NOW_PLAYING_CHANNEL: None,
-                                 QueueKey.LAST_MESSAGE_USER: ""}
+                                 QueueKey.LAST_MESSAGE_USER: "",
+                                 QueueKey.TSS_ENABLED: False}
         
     async def _join_voice_channel(self, channel):
         server = channel.server
