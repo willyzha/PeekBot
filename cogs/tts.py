@@ -43,10 +43,14 @@ class TextToSpeech:
     async def on_message(self, message):
         server = message.server
         sid = server.id
-        print(self.queue[sid][QueueKey.TSS_ENABLED])
+        #print(self.queue[sid][QueueKey.TSS_ENABLED])
+
+        if server.id not in self.queue:
+            self._setup_queue(server)
+
         if self.queue[sid][QueueKey.TSS_ENABLED] and not message.tts and not message.author.bot:
             for text in self._tokenize(message.content, 10):
-                print(text)
+                #print(text)
                 if text.strip() != "":
                     if self.queue[server.id][QueueKey.LAST_MESSAGE_USER] == message.author.id:
                         self.queue[sid][QueueKey.QUEUE].append(text.strip())
@@ -289,7 +293,7 @@ class TextToSpeech:
             pass
 
         log.debug("making player on sid {}".format(server.id))
-        print(voice_client)
+        #print(voice_client)
         voice_client.audio_player = voice_client.create_ffmpeg_player(
             song_filename, use_avconv=use_avconv, options=options, before_options=before_options)
 
@@ -333,14 +337,11 @@ class TextToSpeech:
             
     async def voice_queue_manager(self, sid):
         server = self.bot.get_server(sid)
-        voice_channel_id = self.queue[server.id][QueueKey.VOICE_CHANNEL_ID]
-        channel = self.bot.get_channel(voice_channel_id)
         queue = self.queue[server.id][QueueKey.TEMP_QUEUE]
         assert queue is self.queue[server.id][QueueKey.TEMP_QUEUE]
         
         if not self.is_playing(server) and self.queue[server.id][QueueKey.TSS_ENABLED]:
             if self.voice_client(server) is None:
-                await self._join_voice_channel(channel)
                 return
 
             filename = queue.popleft()
