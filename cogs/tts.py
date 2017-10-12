@@ -40,6 +40,7 @@ class TextToSpeech:
         self.user_list = deque()
         self.mp3_remove_all()
 
+    @bot.command(no_pm=True)
     async def on_message(self, message):
         server = message.server
         sid = server.id
