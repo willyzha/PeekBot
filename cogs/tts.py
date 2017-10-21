@@ -40,8 +40,10 @@ class TextToSpeech:
         self.user_list = deque()
         self.mp3_remove_all()
 
-    @bot.command(no_pm=True)
     async def on_message(self, message):
+        if message.channel.is_private:
+            return
+
         server = message.server
         sid = server.id
         #print(self.queue[sid][QueueKey.TSS_ENABLED])
