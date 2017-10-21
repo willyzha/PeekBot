@@ -415,6 +415,9 @@ class UnauthorizedSpeak(Exception):
 class ChannelUserLimit(Exception):
     pass   
     
+class ConnectTimeout(NotConnected):
+    pass
+    
 def setup(bot):
     n = TextToSpeech(bot)
     bot.add_cog(n)
