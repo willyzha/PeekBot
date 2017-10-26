@@ -18,11 +18,59 @@ from enum import Enum
 
 log = logging.getLogger("red.tts")
 
-available_languages = ['af','sq','ar','hy','bn','ca' , 'zh' , 'zh-cn' ,'zh-tw' ,'zh-yue',
- 'hr','cs' ,'da' ,'nl','en', 'en-au','en-uk' ,'en-us' ,
-'eo' ,'fi' ,'fr' ,'de', 'el', 'hi' ,'hu','is', 'id','it', 'ja' ,'km' , 'ko' ,
-'la' ,'lv' , 'mk' ,'no', 'pl' , 'pt' , 'ro', 'ru','sr', 'si','sk' ,
- 'es', 'es-es' ,'es-us','sw' , 'sv','ta' , 'th' ,'tr','uk' ,'vi', 'cy']
+available_languages = { 'af' : 'Afrikaans', 
+                        'sq' : 'Albanian', 
+                        'ar' : 'Arabic',
+                        'hy' : 'Armenian', 
+                        'bn' : 'Bengali', 
+                        'ca' : 'Catalan', 
+                        'zh' : 'Chinese', 
+                        'zh-cn' : 'Chinese (Mandarin/China)', 
+                        'zh-tw' : 'Chinese (Mandarin/Taiwan)', 
+                        'zh-yue' : 'Chinese (Cantonese)', 
+                        'hr' : 'Croatian', 
+                        'cs' : 'Czech', 
+                        'da' : 'Danish', 
+                        'nl' : 'Dutch', 
+                        'en' : 'English', 
+                        'en-au' : 'English (Australia)', 
+                        'en-uk' : 'English (United Kingdom)',
+                        'en-us' : 'English (United States)', 
+                        'eo' : 'Esperanto', 
+                        'fi' : 'Finnish', 
+                        'fr' : 'French', 
+                        'de' : 'German', 
+                        'el' : 'Greek', 
+                        'hi' : 'Hindi', 
+                        'hu' : 'Hungarian', 
+                        'is' : 'Icelandic', 
+                        'id' : 'Indonesian', 
+                        'it' : 'Italian', 
+                        'ja' : 'Japanese',
+                        'km' : 'Khmer (Cambodian)', 
+                        'ko' : 'Korean', 
+                        'la' : 'Latin', 
+                        'lv' : 'Latvian', 
+                        'mk' : 'Macedonian', 
+                        'no' : 'Norwegian', 
+                        'pl' : 'Polish', 
+                        'pt' : 'Portuguese', 
+                        'ro' : 'Romanian', 
+                        'ru' : 'Russian', 
+                        'sr' : 'Serbian', 
+                        'si' : 'Sinhala', 
+                        'sk' : 'Slovak', 
+                        'es' : 'Spanish', 
+                        'es-es' : 'Spanish (Spain)', 
+                        'es-us' : 'Spanish (United States)', 
+                        'sw' : 'Swahili', 
+                        'sv' : 'Swedish', 
+                        'ta' : 'Tamil', 
+                        'th' : 'Thai', 
+                        'tr' : 'Turkish', 
+                        'uk' : 'Ukrainian', 
+                        'vi' : 'Vietnamese', 
+                        'cy' : 'Welsh' }
 
 class QueueKey(Enum):
     REPEAT = 1
@@ -95,20 +143,23 @@ class TextToSpeech:
     async def language(self, ctx):
         server = ctx.message.server
         language = re.search(r'\!tts language (.+)',ctx.message.content).group(1)
-
+        msg = ""
         if language is None:
             return
         elif language == 'list':
-            await self.bot.say(available_languages)
-            return
+            msg = "Available Languages: \n"
+            for key, value in available_languages.items():
+                msg = msg + key + " : " value + "\n"
 
         if server.id not in self.queue:
             self._setup_queue(server)
-        
-        print(language)
+
         if language in available_languages:
             self.queue[server.id][QueueKey.TTS_LANGUAGE] = language
+            msg = "Language switched to " + available_languages[language] + "."
 
+        await self.bot.say(msg)
+            
     @tts.command(pass_context=True)
     async def off(self, ctx):
         """Turn off TextToSpeech"""
