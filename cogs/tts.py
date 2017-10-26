@@ -18,6 +18,12 @@ from enum import Enum
 
 log = logging.getLogger("red.tts")
 
+available_languages = ['af','sq','ar','hy','bn','ca' , 'zh' , 'zh-cn' ,'zh-tw' ,'zh-yue',
+ 'hr','cs' ,'da' ,'nl','en', 'en-au','en-uk' ,'en-us' ,
+'eo' ,'fi' ,'fr' ,'de', 'el', 'hi' ,'hu','is', 'id','it', 'ja' ,'km' , 'ko' ,
+'la' ,'lv' , 'mk' ,'no', 'pl' , 'pt' , 'ro', 'ru','sr', 'si','sk' ,
+ 'es', 'es-es' ,'es-us','sw' , 'sv','ta' , 'th' ,'tr','uk' ,'vi', 'cy']
+
 class QueueKey(Enum):
     REPEAT = 1
     PLAYLIST = 2
@@ -28,6 +34,7 @@ class QueueKey(Enum):
     NOW_PLAYING_CHANNEL = 7
     LAST_MESSAGE_USER = 8
     TSS_ENABLED = 9
+    TTS_LANGUAGE = 10
 
 class TextToSpeech:
     """General commands."""
@@ -73,7 +80,7 @@ class TextToSpeech:
         return parts
                     
     @commands.group(pass_context=True, no_pm=True)
-    @checks.mod_or_permissions(administrator=True)
+    @checks.mod_or_permissions(administrator=False)
     async def tts(self, ctx):
         """Gives the current status of TextToSpeech"""
         if ctx.invoked_subcommand is None:
@@ -83,6 +90,24 @@ class TextToSpeech:
             else:
                 msg = box("TextToSpeech is currently disabled")
             await self.bot.say(msg)
+
+    @tts.command(pass_context=True)
+    async def language(self, ctx):
+        server = ctx.message.server
+        language = re.search(r'\!tts language (.+)',ctx.message.content).group(1)
+
+        if language is None:
+            return
+        elif language == 'list':
+            await self.bot.say(available_languages)
+            return
+
+        if server.id not in self.queue:
+            self._setup_queue(server)
+        
+        print(language)
+        if language in available_languages:
+            self.queue[server.id][QueueKey.TTS_LANGUAGE] = language
 
     @tts.command(pass_context=True)
     async def off(self, ctx):
@@ -189,7 +214,8 @@ class TextToSpeech:
                                  QueueKey.NOW_PLAYING: None, QueueKey.NOW_PLAYING_CHANNEL: None,
                                  QueueKey.LAST_MESSAGE_USER: "",
                                  QueueKey.TSS_ENABLED: False,
-                                 QueueKey.LAST_MESSAGE_USER: 0}
+                                 QueueKey.LAST_MESSAGE_USER: 0,
+                                 QueueKey.TTS_LANGUAGE: "en"}
 
 
         
@@ -313,7 +339,7 @@ class TextToSpeech:
         
         
         ttsMessage = queue.popleft()
-        tts = gTTS(text=ttsMessage, lang='en', slow=False)
+        tts = gTTS(text=ttsMessage, lang=self.queue[server.id][QueueKey.TTS_LANGUAGE], slow=False)
         unique_filename = str(uuid.uuid4()) + ".mp3"
         ttsFileName = os.path.join(self.local_playlist_path, unique_filename)
         tts.save(ttsFileName)
