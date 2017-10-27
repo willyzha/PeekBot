@@ -149,7 +149,7 @@ class TextToSpeech:
         elif language == 'list':
             msg = "Available Languages: \n"
             for key, value in available_languages.items():
-                msg = msg + key + " : " value + "\n"
+                msg = msg + key + " : " + value + "\n"
 
         if server.id not in self.queue:
             self._setup_queue(server)
