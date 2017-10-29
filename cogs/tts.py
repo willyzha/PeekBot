@@ -149,7 +149,7 @@ class TextToSpeech:
         elif language == 'list':
             msg = "Available Languages: \n"
             for key, value in available_languages.items():
-                msg = msg + key + " : " value + "\n"
+                msg = msg + key + " : " + value + "\n"
 
         if server.id not in self.queue:
             self._setup_queue(server)
@@ -462,6 +462,19 @@ class TextToSpeech:
         for file in os.listdir(self.local_playlist_path):
             if file.endswith(".mp3"):
                 os.remove(os.path.join(self.local_playlist_path, file))
+                
+    async def disconnect_timer(self):
+        stop_times = {}
+        while self == self.bot.get_cog('TextToSpeech'):
+            for vc in self.bot.voice_clients:
+                server = vc.server
+                
+                if len(vc.channel.voice_members) == 1:
+                    await self._stop_and_disconnect(server)
+                    msg = box("TextToSpeech Disabled")
+                    await self.bot.say(msg)
+            await asyncio.sleep(5)
+
         
 class deque(collections.deque):
     def __init__(self, *args, **kwargs):
