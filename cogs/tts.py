@@ -109,6 +109,15 @@ class TextToSpeech:
         if self.queue[sid][QueueKey.TSS_ENABLED] and not message.tts and not message.author.bot:
             for text in self._tokenize(message.content, 10):
                 #print(text)
+                
+                usernames = re.findall(r'\<\@(\d+)\>', text)
+                #print(usernames)
+                if usernames is not None:
+                    for member in server.members:
+                        if str(member.id) in usernames:
+                            text = text.replace("<@" + str(member.id) + ">", member.name + " ")
+                            #print(str(member.id) + member.name)
+
                 if text.strip() != "":
                     if self.queue[server.id][QueueKey.LAST_MESSAGE_USER] == message.author.id:
                         self.queue[sid][QueueKey.QUEUE].append(text.strip())
@@ -468,7 +477,7 @@ class TextToSpeech:
         while self == self.bot.get_cog('TextToSpeech'):
             for vc in list(self.bot.voice_clients):
                 server = vc.server
-                print(vc.channel.voice_members)
+                #print(vc.channel.voice_members)
                 if len(vc.channel.voice_members) == 1:
                     await self._stop_and_disconnect(server)
             await asyncio.sleep(5)
