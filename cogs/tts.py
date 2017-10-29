@@ -471,8 +471,6 @@ class TextToSpeech:
                 
                 if len(vc.channel.voice_members) == 1:
                     await self._stop_and_disconnect(server)
-                    msg = box("TextToSpeech Disabled")
-                    await self.bot.say(msg)
             await asyncio.sleep(5)
 
         
