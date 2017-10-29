@@ -466,9 +466,9 @@ class TextToSpeech:
     async def disconnect_timer(self):
         stop_times = {}
         while self == self.bot.get_cog('TextToSpeech'):
-            for vc in self.bot.voice_clients:
+            for vc in list(self.bot.voice_clients):
                 server = vc.server
-                
+                print(vc.channel.voice_members)
                 if len(vc.channel.voice_members) == 1:
                     await self._stop_and_disconnect(server)
             await asyncio.sleep(5)
