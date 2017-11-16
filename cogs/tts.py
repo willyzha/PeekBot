@@ -101,23 +101,23 @@ class TextToSpeech:
 
         server = message.server
         sid = server.id
+        message_content = message.content
         #print(self.queue[sid][QueueKey.TSS_ENABLED])
-
+        
         if server.id not in self.queue:
             self._setup_queue(server)
 
-        if self.queue[sid][QueueKey.TSS_ENABLED] and not message.tts and not message.author.bot:
-            for text in self._tokenize(message.content, 10):
-                #print(text)
-                
-                usernames = re.findall(r'\<\@(\d+)\>', text)
-                #print(usernames)
-                if usernames is not None:
-                    for member in server.members:
-                        if str(member.id) in usernames:
-                            text = text.replace("<@" + str(member.id) + ">", member.name + " ")
-                            #print(str(member.id) + member.name)
+        for member in message.mentions:
+            message_content = message_content.replace("<@" + str(member.id) + ">", member.name)
+        for role in message.role_mentions:
+            message_content = message_content.replace("<@" + str(role.id) + ">", role.name)
+        for channel in message.channel_mentions:
+            message_content = message_content.replace("<@" + str(channel.id) + ">", channel.name)
 
+        if self.queue[sid][QueueKey.TSS_ENABLED] and not message.tts and not message.author.bot:
+            for text in self._tokenize(message_content, 10):
+                print(text)
+               
                 if text.strip() != "":
                     if self.queue[server.id][QueueKey.LAST_MESSAGE_USER] == message.author.id:
                         self.queue[sid][QueueKey.QUEUE].append(text.strip())
