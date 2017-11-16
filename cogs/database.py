@@ -42,6 +42,17 @@ class Database:
         c.execute(sql_cmd, (message.id,message.edited_timestamp,message.timestamp,message.tts,message.author.name,message.author.id,message.content,message.server.id,message.channel.id))
         self.database.commit()        
 
+    @commands.command(hidden=True, pass_context=True)
+    @checks.mod_or_permissions(manage_server=True)
+    async def rebuild_database(self, ctx):
+        server = ctx.message.server
+        client = self.client
+        for channel in server.channels:
+            if channel.type == discord.ChannelType.text:
+                print("Saving channel " + channel.name)
+                async for message in client.logs_from(channel, limit=500):
+                    print("  " + message.content)
+        
 def check_folders():
     folders = ("data", "data/database/")
     for folder in folders:
