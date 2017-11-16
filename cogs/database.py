@@ -21,23 +21,25 @@ class Database:
         server = message.server
         author = message.author
         channel = message.channel
-        
+       
         c = self.database.cursor()
 
-        c.execute("SELECT EXISTS(SELECT 1 FROM USER WHERE id="+str(author.id)+" collate nocase) LIMIT 1")
+        sql_cmd = "SELECT EXISTS(SELECT 1 FROM USER WHERE id=? collate nocase) LIMIT 1"
+        c.execute(sql_cmd, (author.id))
         if c.fetchone()[0]==0:
-            c.execute("INSERT INTO USER VALUES ('"+author.name+"',"+author.id+",'"+str(author.bot)+"','"+author.avatar+"','"+str(author.created_at)+"')")
+            # name, id, bot, avatar, created_at
+            sql_cmd = "INSERT INTO USER VALUES ('?',?,'?','?','?')"
+            c.execute(cql_cmd, (author.name, author.id, author.bot, author.avatar, author.created_at))
 
-        c.execute("SELECT EXISTS(SELECT 1 FROM SERVERS WHERE id="+str(server.id)+" collate nocase) LIMIT 1")
+        sql_cmd = "SELECT EXISTS(SELECT 1 FROM SERVERS WHERE id=? collate nocase) LIMIT 1"
+        c.execute(sql_cmd, (server.id))
         if c.fetchone()[0]==0:
-            c.execute("INSERT INTO SERVERS VALUES ('"+server.name+"',"+server.id+","+server.owner.id+")")
+            # name, id, owner_id
+            sql_cmd = "INSERT INTO USER VALUES ('?',?,'?')"
+            c.execute(sql_cmd, (server.name,server.id,server.owner.id))
 
-        print(message.edited_timestamp)
-        sql_command = message.id+",'"+str(message.edited_timestamp)+"','"+str(message.timestamp)+"','"+str(message.tts)+"','"+str(message.author.name)+"',"+str(message.author.id)+",'"+message.content+"',"+message.server.id+","+message.channel.id
-        
-        print(sql_command)
-        
-        c.execute("INSERT INTO MESSAGE VALUES ("+sql_command+")")
+        sql_cmd = "INSERT INTO MESSAGE VALUES (?,'?','?','?','?',?,'?',?,?)"      
+        c.execute(sql_cmd, (message.id,message.edited_timestamp,message.timestamp,message.tts,message.author.name,message.author.id,message.content,message.server.id,message.channel.id))
         self.database.commit()        
 
 def check_folders():
