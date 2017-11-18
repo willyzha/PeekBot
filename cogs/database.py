@@ -16,31 +16,10 @@ class Database:
     """General commands."""
     def __init__(self, bot):
         self.database = lite.connect(DATABASE_PATH)
+        self.client = bot
 
     async def on_message(self, message):
-        server = message.server
-        author = message.author
-        channel = message.channel
-       
-        c = self.database.cursor()
-
-        sql_cmd = "SELECT EXISTS(SELECT 1 FROM USER WHERE id=? collate nocase) LIMIT 1"
-        c.execute(sql_cmd, (author.id))
-        if c.fetchone()[0]==0:
-            # name, id, bot, avatar, created_at
-            sql_cmd = "INSERT INTO USER VALUES ('?',?,'?','?','?')"
-            c.execute(cql_cmd, (author.name, author.id, author.bot, author.avatar, author.created_at))
-
-        sql_cmd = "SELECT EXISTS(SELECT 1 FROM SERVERS WHERE id=? collate nocase) LIMIT 1"
-        c.execute(sql_cmd, (server.id))
-        if c.fetchone()[0]==0:
-            # name, id, owner_id
-            sql_cmd = "INSERT INTO USER VALUES ('?',?,'?')"
-            c.execute(sql_cmd, (server.name,server.id,server.owner.id))
-
-        sql_cmd = "INSERT INTO MESSAGE VALUES (?,'?','?','?','?',?,'?',?,?)"      
-        c.execute(sql_cmd, (message.id,message.edited_timestamp,message.timestamp,message.tts,message.author.name,message.author.id,message.content,message.server.id,message.channel.id))
-        self.database.commit()        
+        self.save_message_to_database(message)
 
     @commands.command(hidden=True, pass_context=True)
     @checks.mod_or_permissions(manage_server=True)
@@ -50,8 +29,40 @@ class Database:
         for channel in server.channels:
             if channel.type == discord.ChannelType.text:
                 print("Saving channel " + channel.name)
-                async for message in client.logs_from(channel, limit=500):
-                    print("  " + message.content)
+                async for message in client.logs_from(channel, limit=99999):
+                    self.save_message_to_database(message)
+        
+    def save_message_to_database(self, message):
+        server = message.server
+        author = message.author
+        channel = message.channel
+       
+        if server is None:
+            return
+       
+        c = self.database.cursor()
+
+        sql_cmd = "SELECT EXISTS(SELECT 1 FROM USER WHERE id=? collate nocase) LIMIT 1"
+        c.execute(sql_cmd, (author.id,))
+        if c.fetchone()[0]==0:
+            # name, id, bot, avatar, created_at
+            sql_cmd = "INSERT INTO USER VALUES (?,?,?,?,?)"
+            c.execute(sql_cmd, (string(author.name), author.id, string(author.bot), string(author.avatar), string(author.created_at),))
+
+        sql_cmd = "SELECT EXISTS(SELECT 1 FROM SERVERS WHERE id=? collate nocase) LIMIT 1"
+        c.execute(sql_cmd, (server.id,))
+        if c.fetchone()[0]==0:
+            # name, id, owner_id
+            sql_cmd = "INSERT INTO USER VALUES (?,?,?)"
+            c.execute(sql_cmd, (string(server.name),server.id,server.owner.id,))
+
+        sql_cmd = "SELECT EXISTS(SELECT 1 FROM MESSAGE WHERE message_id=? collate nocase) LIMIT 1"
+        c.execute(sql_cmd, (message.id,))
+        if c.fetchone()[0]==0:
+            sql_cmd = "INSERT INTO MESSAGE VALUES (?,?,?,?,?,?,?,?,?)"  
+
+            c.execute(sql_cmd, (message.id,string(message.edited_timestamp),string(message.timestamp),string(message.tts),string(message.author.name),message.author.id,message.content,message.server.id,message.channel.id,))
+        self.database.commit()  
         
 def check_folders():
     folders = ("data", "data/database/")
@@ -68,6 +79,12 @@ def check_files():
         #c.execute("CREATE TABLE IF NOT EXISTS users (Id INT, ServerId INT, Name TEXT, Avatar_Url TEXT)")
         #c.execute("CREATE TABLE IF NOT EXISTS messages (UserId INT, Message TEXT)")
 
+def string(input):
+    if input is None:
+        return "None"
+    else:
+        return str(input)
+        
 def setup(bot):
     check_folders()
     check_files()
