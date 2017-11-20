@@ -89,6 +89,7 @@ class TextToSpeech:
     def __init__(self, bot):
         self.bot = bot
         self.local_playlist_path = "data/tts"
+        self.local_soundboard_settings = "data/soundboard/sb_settings.json"
         self.connect_timers = {}
         self.queue = {}
         self.remove_queue = deque()
@@ -136,6 +137,23 @@ class TextToSpeech:
 
         return parts
                     
+    @commands.group(pass_context=True, no_pm=True)
+    async def sb(self, ctx):
+        if ctx.invoked_subcommand is None:
+            server = ctx.message.server
+            msg = box("Useage: sb <sound>")
+            await self.bot.say(msg)
+        else:
+            subcommand = ctx.invoked_subommand
+            print(subcommand)
+            
+            self.local_soundboard_settings
+            current = dataIO.load_json(self.local_soundboard_settings)
+            if subcommand in current.keys():
+                print(subcommand + " exists")
+            else:
+                await self.bot.say(msg)
+        
     @commands.group(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(administrator=False)
     async def tts(self, ctx):
@@ -550,6 +568,8 @@ def check_files():
         
 def setup(bot):
     n = TextToSpeech(bot)
+    check_folders()
+    check_files()
     bot.add_cog(n)
     bot.loop.create_task(n.gTTS_queue_scheduler())
     bot.loop.create_task(n.disconnect_timer())
