@@ -514,7 +514,40 @@ class ChannelUserLimit(Exception):
     
 class ConnectTimeout(NotConnected):
     pass
-    
+  
+def check_folders():
+    folders = ("data", "data/tts", "data/soundboard")
+    for folder in folders:
+        if not os.path.exists(folder):
+            print("Creating " + folder + " folder...")
+            os.makedirs(folder)
+            
+def check_files():
+    default = {"sample": "sample.mp3"}
+    data_path = "data/soundboard/"
+    settings_path = "data/soundboard/sb_settings.json"
+    if not os.path.isfile(settings_path):
+        print("Creating default audio settings.json...")
+        dataIO.save_json(settings_path, default)
+    else:  # consistency check
+        try:
+            current = dataIO.load_json(settings_path)
+        except JSONDecodeError:
+            # settings.json keeps getting corrupted for unknown reasons. Let's
+            # try to keep it from making the cog load fail.
+            dataIO.save_json(settings_path, default)
+            current = dataIO.load_json(settings_path)
+            
+        if current.keys() != default.keys():
+            for key in current.keys():
+                mp3_file = data_path + current[key]
+                
+                if not os.path.isfile(mp3_file):
+                    print(mp3_file + " does not exist! Removing from list.")
+                    current.pop(key)
+                    
+            dataIO.save_json(settings_path, current)
+        
 def setup(bot):
     n = TextToSpeech(bot)
     bot.add_cog(n)
