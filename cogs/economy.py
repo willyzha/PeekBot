@@ -523,11 +523,53 @@ class Economy:
                 return True
         return False
 
+    @commands.command(pass_context=True, no_pm=True)
+    async def dice(self, ctx, bid: int, guess: int):
+        """Play the dice game"""
+        author = ctx.message.author
+        server = author.server
+                                
+        try:
+            if not self.bank.can_spend(author, bid):
+                raise InsufficientBalance
+                
+            await self.dice_game(author, bid, guess)
+        except NoAccount:
+            await self.bot.say("{} You need an account to use the slot "
+                   "machine. Type `{}bank register` to open one."
+                   "".format(author.mention, ctx.prefix))
+        except InsufficientBalance:
+            await self.bot.say("{} You need an account with enough funds to "
+                               "play the slot machine.".format(author.mention))
+    
+    async def dice_game(self, author, bid, guess):
+        payout = 0
+        roll = random.randint(1,6)
+        if roll == guess:
+            payout = bid * 6
+                    
+        if payout:
+            then = self.bank.get_balance(author)
+            pay = payout
+            now = then - bid + pay
+            self.bank.set_credits(author, now)
+            await self.bot.say("{}\n{} {}\n\nYour bid: {}\n{} → {}!"
+                               "".format("I rolled a " + str(roll) + ".", author.mention,
+                                         "You guessed correctly!", bid, then, now))
+        else:
+            then = self.bank.get_balance(author)
+            self.bank.withdraw_credits(author, bid)
+            now = then - bid
+            await self.bot.say("{}\n{} you guessed wrong loser!\nYour bid: {}\n{} → {}!"
+                               "".format("I rolled a " + str(roll) + ".", author.mention, bid, then, now))
+    
+    
     @commands.command()
     async def payouts(self):
         """Shows slot machine payouts"""
         await self.bot.whisper(SLOT_PAYOUTS_MSG)
 
+                               
     @commands.command(pass_context=True, no_pm=True)
     async def slot(self, ctx, bid: int):
         """Play the slot machine"""

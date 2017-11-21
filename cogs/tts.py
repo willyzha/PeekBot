@@ -107,13 +107,16 @@ class TextToSpeech:
         if server.id not in self.queue:
             self._setup_queue(server)
 
+        print(message_content)
+            
         for member in message.mentions:
-            message_content = message_content.replace("<@" + str(member.id) + ">", member.name)
+            message_content = message_content.replace(str(member.id), member.name).replace("<@", "").replace(">", "")
         for role in message.role_mentions:
-            message_content = message_content.replace("<@" + str(role.id) + ">", role.name)
+            message_content = message_content.replace(str(role.id), role.name).replace("<@", "").replace(">", "")
         for channel in message.channel_mentions:
-            message_content = message_content.replace("<@" + str(channel.id) + ">", channel.name)
+            message_content = message_content.replace(str(channel.id), channel.name).replace("<@", "").replace(">", "")
 
+            
         if self.queue[sid][QueueKey.TSS_ENABLED] and not message.tts and not message.author.bot:
             for text in self._tokenize(message_content, 10):
                 print(text)
@@ -135,7 +138,7 @@ class TextToSpeech:
         parts = re.split(pattern, text)
 
         return parts
-                    
+
     @commands.group(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(administrator=False)
     async def tts(self, ctx):
@@ -147,6 +150,11 @@ class TextToSpeech:
             else:
                 msg = box("TextToSpeech is currently disabled")
             await self.bot.say(msg)
+
+    @commands.group(pass_context=True, no_pm=True)
+    async def happybirthday(self, ctx):
+        sid = ctx.message.server.id
+        self.queue[sid][QueueKey.QUEUE].append("Happy brithday to you! Happy birthday to you! Happybirthday dear Ricky Leek. Happy Birthday to you!")
 
     @tts.command(pass_context=True)
     async def language(self, ctx):
