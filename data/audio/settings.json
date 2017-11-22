@@ -9,6 +9,12 @@
             "VOTE_ENABLED" : true,
             "VOTE_THRESHOLD" : 50
         },
+        "345354603103125504" : {
+            "NOPPL_DISCONNECT" : true,
+            "VOLUME" : 50,
+            "VOTE_ENABLED" : true,
+            "VOTE_THRESHOLD" : 50
+        },
         "366466650587004930" : {
             "NOPPL_DISCONNECT" : true,
             "VOLUME" : 50,
