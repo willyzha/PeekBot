@@ -182,8 +182,14 @@ class TextToSpeech:
         if server.id not in self.queue:
             self._setup_queue(server)
         
-        if self.is_playing(server):
-            await ctx.invoke(self._queue, url=url)
+        if self.is_playing(server) and self.queue[server.id][QueueKey.TSS_ENABLED]:
+            #await ctx.invoke(self._queue, url=url)
+            self._stop(server)
+            if self.queue[server.id][QueueKey.TSS_ENABLED]:
+                self.queue[server.id][QueueKey.TSS_ENABLED] = False
+            self.queue[server.id][QueueKey.SB_ENABLED] = True
+            msg = box("SoundBoard Enabled")
+            await self.bot.say(msg)
             return  # Default to queue
         
                 # Checking already connected, will join if not
