@@ -166,9 +166,10 @@ class TextToSpeech:
                     self.local_soundboard_settings
                     current = dataIO.load_json(self.local_soundboard_settings)
                     if sound in current.keys():
-                        msg = msg + " exists"
                         self.queue[server.id][QueueKey.TEMP_QUEUE].append("data/soundboard/"+current[sound])
-                    await self.bot.say(msg)
+                    else:
+                        msg = box("Soundboard command " + sound + " does not exist.")
+                        await self.bot.say(msg)
         else:
             msg = box("Useage: sb <sound>")
             await self.bot.say(msg)
