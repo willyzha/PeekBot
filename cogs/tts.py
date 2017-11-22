@@ -83,6 +83,7 @@ class QueueKey(Enum):
     LAST_MESSAGE_USER = 8
     TSS_ENABLED = 9
     TTS_LANGUAGE = 10
+    SB_ENABLED = 11
 
 class TextToSpeech:
     """General commands."""
@@ -97,18 +98,24 @@ class TextToSpeech:
         self.mp3_remove_all()
 
     async def on_message(self, message):
+
         if message.channel.is_private:
             return
-
+            
         server = message.server
         sid = server.id
         message_content = message.content
-        #print(self.queue[sid][QueueKey.TSS_ENABLED])
-        
+
         if server.id not in self.queue:
             self._setup_queue(server)
+     
+        if not self.queue[sid][QueueKey.TSS_ENABLED]:
+            return
 
-        print(message_content)
+        #print(self.queue[sid][QueueKey.TSS_ENABLED])
+     
+
+        print(message.clean_content)
             
         for member in message.mentions:
             message_content = message_content.replace(str(member.id), member.name).replace("<@", "").replace(">", "")
@@ -144,24 +151,86 @@ class TextToSpeech:
         self.queue[sid][QueueKey.QUEUE].append("Happy brithday to you! Happy birthday to you! Happybirthday dear Ricky Leek. Happy Birthday to you!")
     
     @commands.group(pass_context=True, no_pm=True)
-    async def sb(self, ctx):
-        if ctx.invoked_subcommand is None:
+    async def sb(self, ctx, sound):
+        print(ctx.invoked_subcommand)
+        if sound is not None:
             server = ctx.message.server
+            if sound == "on":
+                await self.sb_on(ctx)
+            elif sound == "off":
+                await self.sb_off(ctx)
+            else:
+                if self.queue[server.id][QueueKey.SB_ENABLED]:
+                    print(sound)
+                    msg = sound
+                    self.local_soundboard_settings
+                    current = dataIO.load_json(self.local_soundboard_settings)
+                    if sound in current.keys():
+                        msg = msg + " exists"
+                        self.queue[server.id][QueueKey.TEMP_QUEUE].append("data/soundboard/"+current[sound])
+                    await self.bot.say(msg)
+        else:
             msg = box("Useage: sb <sound>")
             await self.bot.say(msg)
-        else:
-            subcommand = ctx.invoked_subommand
-            print(subcommand)
             
-            self.local_soundboard_settings
-            current = dataIO.load_json(self.local_soundboard_settings)
-            if subcommand in current.keys():
-                print(subcommand + " exists")
-            else:
-                await self.bot.say(msg)
+    async def sb_on(self, ctx):
+        """Turn on TextToSpeech"""
+        server = ctx.message.server
+        author = ctx.message.author
+        voice_channel = author.voice_channel
+        
+        if server.id not in self.queue:
+            self._setup_queue(server)
+        
+        if self.is_playing(server):
+            await ctx.invoke(self._queue, url=url)
+            return  # Default to queue
+        
+                # Checking already connected, will join if not
+
+        try:
+            self.has_connect_perm(author, server)
+        except AuthorNotConnected:
+            await self.bot.say("You must join a voice channel before I can"
+                               " play anything.")
+            return
+        except UnauthorizedConnect:
+            await self.bot.say("I don't have permissions to join your"
+                               " voice channel.")
+            return
+        except UnauthorizedSpeak:
+            await self.bot.say("I don't have permissions to speak in your"
+                               " voice channel.")
+            return
+        except ChannelUserLimit:
+            await self.bot.say("Your voice channel is full.")
+            return
+
+        if not self.voice_connected(server):
+            await self._join_voice_channel(voice_channel)
+        else:  # We are connected but not to the right channel
+            if self.voice_client(server).channel != voice_channel:
+                await self._stop_and_disconnect(server)
+                await self._join_voice_channel(voice_channel)
+        
+        msg = box("SoundBoard Enabled")
+        await self.bot.say(msg)
+        if self.queue[server.id][QueueKey.TSS_ENABLED]:
+            self.queue[server.id][QueueKey.TSS_ENABLED] = False
+        self.queue[server.id][QueueKey.SB_ENABLED] = True    
+        
+    async def sb_off(self, ctx):
+        """Turn off TextToSpeech"""
+        server = ctx.message.server
+        
+        if server.id not in self.queue:
+            self._setup_queue(server)
+        await self._stop_and_disconnect(server)
+        msg = box("SoundBoard Disabled")
+        self.queue[server.id][QueueKey.SB_ENABLED] = False
+        await self.bot.say(msg)
         
     @commands.group(pass_context=True, no_pm=True)
-    @checks.mod_or_permissions(administrator=False)
     async def tts(self, ctx):
         """Gives the current status of TextToSpeech"""
         if ctx.invoked_subcommand is None:
@@ -215,8 +284,14 @@ class TextToSpeech:
         if server.id not in self.queue:
             self._setup_queue(server)
         
-        if self.is_playing(server):
-            await ctx.invoke(self._queue, url=url)
+        if self.is_playing(server) and self.queue[server.id][QueueKey.SB_ENABLED]:
+            #await ctx.invoke(self._queue, url=url)
+            self._stop(server)
+            if self.queue[server.id][QueueKey.SB_ENABLED]:
+                self.queue[server.id][QueueKey.SB_ENABLED] = False
+            self.queue[server.id][QueueKey.TSS_ENABLED] = True
+            msg = box("TextToSpeech Enabled")
+            await self.bot.say(msg)
             return  # Default to queue
         
                 # Checking already connected, will join if not
@@ -299,7 +374,8 @@ class TextToSpeech:
                                  QueueKey.LAST_MESSAGE_USER: "",
                                  QueueKey.TSS_ENABLED: False,
                                  QueueKey.LAST_MESSAGE_USER: 0,
-                                 QueueKey.TTS_LANGUAGE: "en"}
+                                 QueueKey.TTS_LANGUAGE: "en",
+                                 QueueKey.SB_ENABLED: False}
 
 
         
@@ -384,7 +460,7 @@ class TextToSpeech:
         # Okay if we reach here we definitively have a working voice_client
 
         if local:
-            song_filename = os.path.join(self.local_playlist_path, filename)
+            song_filename = filename
         else:
             song_filename = os.path.join(self.cache_path, filename)
 
@@ -428,7 +504,7 @@ class TextToSpeech:
         ttsFileName = os.path.join(self.local_playlist_path, unique_filename)
         tts.save(ttsFileName)
             
-        self.queue[server.id][QueueKey.TEMP_QUEUE].append(unique_filename)
+        self.queue[server.id][QueueKey.TEMP_QUEUE].append(ttsFileName)
 
     async def gTTS_queue_scheduler(self):
         while self == self.bot.get_cog('TextToSpeech'):
@@ -453,7 +529,7 @@ class TextToSpeech:
         queue = self.queue[server.id][QueueKey.TEMP_QUEUE]
         assert queue is self.queue[server.id][QueueKey.TEMP_QUEUE]
         
-        if not self.is_playing(server) and self.queue[server.id][QueueKey.TSS_ENABLED]:
+        if not self.is_playing(server) and (self.queue[server.id][QueueKey.TSS_ENABLED] or self.queue[server.id][QueueKey.SB_ENABLED]):
             if self.voice_client(server) is None:
                 return
 
@@ -488,8 +564,9 @@ class TextToSpeech:
             
     def mp3_cleanup(self):
         if len(self.remove_queue) > 0:
-            file_to_remove = os.path.join(self.local_playlist_path, self.remove_queue.popleft())
-            os.remove(file_to_remove)
+            file_to_remove = self.remove_queue.popleft()
+            if self.local_playlist_path in file_to_remove:
+                os.remove(file_to_remove)
 
     def mp3_remove_all(self):
         for file in os.listdir(self.local_playlist_path):
@@ -563,7 +640,7 @@ def check_files():
             current = dataIO.load_json(settings_path)
             
         if current.keys() != default.keys():
-            for key in current.keys():
+            for key in list(current.keys()):
                 mp3_file = data_path + current[key]
                 
                 if not os.path.isfile(mp3_file):
