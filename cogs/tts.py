@@ -98,34 +98,31 @@ class TextToSpeech:
         self.mp3_remove_all()
 
     async def on_message(self, message):
-
         if message.channel.is_private:
             return
             
         server = message.server
         sid = server.id
-        message_content = message.content
 
         if server.id not in self.queue:
             self._setup_queue(server)
      
         if not self.queue[sid][QueueKey.TSS_ENABLED]:
             return
-
-        #print(self.queue[sid][QueueKey.TSS_ENABLED])
-     
-
-        print(message.clean_content)
             
-        for member in message.mentions:
-            message_content = message_content.replace(str(member.id), member.name).replace("<@", "").replace(">", "")
-        for role in message.role_mentions:
-            message_content = message_content.replace(str(role.id), role.name).replace("<@", "").replace(">", "")
-            message_content = message_content.replace(str(channel.id), channel.name).replace("<@", "").replace(">", "")
+        #print(message.clean_content)
+        regex = re.search(r'(\<:).+(:\d+>)',message.clean_content)
+        
+        message_content = message.clean_content
+        if message_content[0] == "!":
+            return
+        
+        if regex is not None:
+            for group in regex.groups():
+                message_content = message_content.replace(group, "")
             
         if self.queue[sid][QueueKey.TSS_ENABLED] and not message.tts and not message.author.bot:
             for text in self._tokenize(message_content, 10):
-                print(text)
                
                 if text.strip() != "":
                     if self.queue[server.id][QueueKey.LAST_MESSAGE_USER] == message.author.id:
@@ -152,7 +149,6 @@ class TextToSpeech:
     
     @commands.group(pass_context=True, no_pm=True)
     async def sb(self, ctx, sound):
-        print(ctx.invoked_subcommand)
         if sound is not None:
             server = ctx.message.server
             if sound == "on":
@@ -161,7 +157,6 @@ class TextToSpeech:
                 await self.sb_off(ctx)
             else:
                 if self.queue[server.id][QueueKey.SB_ENABLED]:
-                    print(sound)
                     msg = sound
                     self.local_soundboard_settings
                     current = dataIO.load_json(self.local_soundboard_settings)
@@ -170,8 +165,23 @@ class TextToSpeech:
                     else:
                         msg = box("Soundboard command " + sound + " does not exist.")
                         await self.bot.say(msg)
+                        
+                        cmd_usage = "Usage: sb <sound>\n" + \
+                                    " Available sounds:\n"
+                        current = dataIO.load_json(self.local_soundboard_settings)
+                        for sound in current.keys():
+                            cmd_usage = cmd_usage + "   -" + sound + "\n"
+                        msg = box(cmd_usage)
+                                  
+                        await self.bot.say(msg)
         else:
-            msg = box("Useage: sb <sound>")
+            cmd_usage = "Usage: sb <sound>\n" + \
+                        " Available sounds:\n"
+            current = dataIO.load_json(self.local_soundboard_settings)
+            for sound in current.keys():
+                cmd_usage = cmd_usage + "   -" + sound + "\n"
+            msg = box(cmd_usage)
+                      
             await self.bot.say(msg)
             
     async def sb_on(self, ctx):
@@ -222,8 +232,6 @@ class TextToSpeech:
         
         msg = box("SoundBoard Enabled")
         await self.bot.say(msg)
-        if self.queue[server.id][QueueKey.TSS_ENABLED]:
-            self.queue[server.id][QueueKey.TSS_ENABLED] = False
         self.queue[server.id][QueueKey.SB_ENABLED] = True    
         
     async def sb_off(self, ctx):
@@ -232,7 +240,8 @@ class TextToSpeech:
         
         if server.id not in self.queue:
             self._setup_queue(server)
-        await self._stop_and_disconnect(server)
+        if self.queue[server.id][QueueKey.TSS_ENABLED] == False:
+            await self._stop_and_disconnect(server)
         msg = box("SoundBoard Disabled")
         self.queue[server.id][QueueKey.SB_ENABLED] = False
         await self.bot.say(msg)
@@ -276,6 +285,8 @@ class TextToSpeech:
         
         if server.id not in self.queue:
             self._setup_queue(server)
+        if self.queue[server.id][QueueKey.SB_ENABLED] == False:
+            await self._stop_and_disconnect(server)
         await self._stop_and_disconnect(server)
         msg = box("TextToSpeech Disabled")
         self.queue[server.id][QueueKey.TSS_ENABLED] = False
@@ -587,7 +598,10 @@ class TextToSpeech:
                 server = vc.server
                 #print(vc.channel.voice_members)
                 if len(vc.channel.voice_members) == 1:
+                    self.queue[server.id][QueueKey.TSS_ENABLED] = False
+                    self.queue[server.id][QueueKey.SB_ENABLED] = False
                     await self._stop_and_disconnect(server)
+
             await asyncio.sleep(5)
 
         

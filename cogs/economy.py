@@ -17,6 +17,7 @@ default_settings = {"PAYDAY_TIME": 300, "PAYDAY_CREDITS": 120,
                     "SLOT_MIN": 5, "SLOT_MAX": 100, "SLOT_TIME": 0,
                     "REGISTER_CREDITS": 0}
 
+multiplier_settings = {"Potato": 2, "Tomato": 3, "Asparagus": 4, "Leek": 5}
 
 class EconomyError(Exception):
     pass
@@ -422,15 +423,22 @@ class Economy:
                 seconds = abs(self.payday_register[server.id][
                               id] - int(time.perf_counter()))
                 if seconds >= self.settings[server.id]["PAYDAY_TIME"]:
-                    self.bank.deposit_credits(author, self.settings[
-                                              server.id]["PAYDAY_CREDITS"])
+                    multiplier = 1;
+                    print(author.roles)
+                    for role in author.roles:
+                        if role.name in multiplier_settings:
+                            if multiplier_settings[role.name] > multiplier:
+                                multiplier = multiplier_settings[role.name]
+                
+                    payday_credit = self.settings[server.id]["PAYDAY_CREDITS"] * multiplier
+                    self.bank.deposit_credits(author, payday_credit)
                     self.payday_register[server.id][
                         id] = int(time.perf_counter())
                     await self.bot.say(
                         "{} Here, take some credits. Enjoy! (+{}"
                         " credits!)".format(
                             author.mention,
-                            str(self.settings[server.id]["PAYDAY_CREDITS"])))
+                            str(payday_credit)))
                 else:
                     dtime = self.display_time(
                         self.settings[server.id]["PAYDAY_TIME"] - seconds)
@@ -438,13 +446,20 @@ class Economy:
                         "{} Too soon. For your next payday you have to"
                         " wait {}.".format(author.mention, dtime))
             else:
+                multiplier = 1;
+                print(author.roles)
+                for role in author.roles:
+                    if role.name in multiplier_settings:
+                        if multiplier_settings[role.name] > multiplier:
+                            multiplier = multiplier_settings[role.name]
+                            
+                payday_credit = self.settings[server.id]["PAYDAY_CREDITS"] * multiplier
                 self.payday_register[server.id][id] = int(time.perf_counter())
-                self.bank.deposit_credits(author, self.settings[
-                                          server.id]["PAYDAY_CREDITS"])
+                self.bank.deposit_credits(author, payday_credit)
                 await self.bot.say(
                     "{} Here, take some credits. Enjoy! (+{} credits!)".format(
                         author.mention,
-                        str(self.settings[server.id]["PAYDAY_CREDITS"])))
+                        str(payday_credit)))
         else:
             await self.bot.say("{} You need an account to receive credits."
                                " Type `{}bank register` to open one.".format(
