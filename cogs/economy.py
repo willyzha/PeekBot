@@ -17,7 +17,7 @@ default_settings = {"PAYDAY_TIME": 300, "PAYDAY_CREDITS": 120,
                     "SLOT_MIN": 5, "SLOT_MAX": 100, "SLOT_TIME": 0,
                     "REGISTER_CREDITS": 0}
 
-multiplier_settings = {"Potato": 2, "Tomato": 3, "Asparagus": 4, "Leek": 5}
+multiplier_settings = {"Potato Farmer": 2, "Sweet Potato Farmer": 2.5, "Tomato Farmer": 3, "Heirloom Tomato Farmer": 3.5, "Potato Factory Owner": 5, "Tomato Factory Owner": 7, "Asparagus Factory Owner": 9, "Leek Factory Owner": 15}
 
 class EconomyError(Exception):
     pass
