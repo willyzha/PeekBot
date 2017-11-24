@@ -3,7 +3,7 @@
         "PAYDAY_CREDITS" : 150,
         "PAYDAY_TIME" : 300,
         "REGISTER_CREDITS" : 0,
-        "SLOT_MAX" : 1000,
+        "SLOT_MAX" : 10000,
         "SLOT_MIN" : 25,
         "SLOT_TIME" : 0
     }
