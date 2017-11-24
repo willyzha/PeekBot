@@ -29,7 +29,7 @@ class Wordcloud:
         wordcloud_text = ""
         sql_cmd = "SELECT content FROM MESSAGE WHERE author_id=? AND channel_id=?"
         for row in c.execute(sql_cmd, (author.id, channel.id,)):
-            wordcloud_text = wordcloud_text.re + row[0].replace("wordcloud","") + " "
+            wordcloud_text = wordcloud_text + row[0].replace("wordcloud","") + " "
         
         wordcloud = WordCloud(width=800, height=400).generate(wordcloud_text)
         
