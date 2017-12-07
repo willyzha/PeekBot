@@ -424,7 +424,6 @@ class Economy:
                               id] - int(time.perf_counter()))
                 if seconds >= self.settings[server.id]["PAYDAY_TIME"]:
                     multiplier = 1;
-                    print(author.roles)
                     for role in author.roles:
                         if role.name in multiplier_settings:
                             if multiplier_settings[role.name] > multiplier:

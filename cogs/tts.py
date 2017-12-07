@@ -114,8 +114,9 @@ class TextToSpeech:
         regex = re.search(r'(\<:).+(:\d+>)',message.clean_content)
         
         message_content = message.clean_content
-        if message_content[0] == "!":
-            return
+        if len(message_content) > 0:
+            if message_content[0] == "!":
+                return
         
         if regex is not None:
             for group in regex.groups():
@@ -146,7 +147,7 @@ class TextToSpeech:
     async def happybirthday(self, ctx):
         sid = ctx.message.server.id
         self.queue[sid][QueueKey.QUEUE].append("Happy brithday to you! Happy birthday to you! Happybirthday dear Ricky Leek. Happy Birthday to you!")
-    
+
     @commands.group(pass_context=True, no_pm=True)
     async def sb(self, ctx, sound):
         if sound is not None:
@@ -276,7 +277,7 @@ class TextToSpeech:
             self.queue[server.id][QueueKey.TTS_LANGUAGE] = language
             msg = "Language switched to " + available_languages[language] + "."
 
-        await self.bot.say(msg)
+            await self.bot.say(msg)
             
     @tts.command(pass_context=True)
     async def off(self, ctx):
@@ -287,7 +288,6 @@ class TextToSpeech:
             self._setup_queue(server)
         if self.queue[server.id][QueueKey.SB_ENABLED] == False:
             await self._stop_and_disconnect(server)
-        await self._stop_and_disconnect(server)
         msg = box("TextToSpeech Disabled")
         self.queue[server.id][QueueKey.TSS_ENABLED] = False
         await self.bot.say(msg)
