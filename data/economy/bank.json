@@ -1,12 +1,12 @@
 {
     "309167576829788160" : {
         "118184332065112064" : {
-            "balance" : 1547,
+            "balance" : 0,
             "created_at" : "2017-11-17 02:08:16",
             "name" : "Sickle Ninjuh"
         },
         "148121356729319424" : {
-            "balance" : 1050,
+            "balance" : 20000.0,
             "created_at" : "2017-10-07 17:18:14",
             "name" : "Panjer"
         },
@@ -16,22 +16,22 @@
             "name" : "BarDown12"
         },
         "163880851736625152" : {
-            "balance" : 13111,
+            "balance" : 46000,
             "created_at" : "2017-11-17 02:06:06",
             "name" : "Leek"
         },
         "241398824524972033" : {
-            "balance" : 0,
+            "balance" : 420,
             "created_at" : "2017-11-17 04:27:33",
             "name" : "Ragin Buu"
         },
         "306938018491531264" : {
-            "balance" : 1950,
+            "balance" : 0,
             "created_at" : "2017-10-07 17:11:51",
             "name" : "Bionis"
         },
         "333993135149678593" : {
-            "balance" : 2450,
+            "balance" : 27700.0,
             "created_at" : "2017-11-19 04:12:12",
             "name" : "PurinPurin"
         },
