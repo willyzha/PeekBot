@@ -891,7 +891,7 @@ class Economy:
                 card = await self.draw_card("dealer")
                 
                 if True:
-                    await self.bot.upload("data\economy\playing_cards\hidden_card.png")
+                    await self.bot.upload("data/economy/playing_cards/hidden_card.png")
                 
                 await self.bot.say("**The dealer has drawn a {0}!**".format(card))
                 self.game_state = "game"
@@ -1009,7 +1009,7 @@ class Economy:
         await self.count_hand(player, curr_hand) #to change ace names and values in the "ranks" table, don't actually need the count
 
         if True:
-            await self.bot.upload("data\economy\playing_cards\\" + rank + "_of_" + suit + ".png")
+            await self.bot.upload("data/economy/playing_cards//" + rank + "_of_" + suit + ".png")
 
         if rank == "small_ace":
             rank = "ace"
