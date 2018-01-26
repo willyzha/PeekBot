@@ -668,8 +668,8 @@ class Economy:
         """Join the game of blackjack with your opening bet"""
         player = ctx.message.author
         if self.bank.can_spend(player, bet) and self.game_state == "pregame":
-            if bet < self.settings["BLACKJACK_MIN"] or (bet > self.settings["BLACKJACK_MAX"] and self.settings["BLACKJACK_MAX_ENABLED"]):
-                await self.bot.say("{0}, bet must be between {1} and {2}.".format(player.mention, self.settings["BLACKJACK_MIN"], self.settings["BLACKJACK_MAX"]))
+            if bet < 0 or bet > 100000:
+                await self.bot.say("{0}, bet must be between {1} and {2}.".format(player.mention, 0, 100000))
             else:
                 if not (player in self.players.keys()):
                     await self.bot.say("{0} has placed a bet of {1}".format(player.mention, bet))
@@ -849,7 +849,7 @@ class Economy:
                 self.players = {}
                 self.timer = 0
                 await self.bot.say(":moneybag::hearts:`Blackjack started!`:diamonds::moneybag:")
-                await asyncio.sleep(self.settings["BLACKJACK_PRE_GAME_TIME"])
+                await asyncio.sleep(20)
 
             if self.game_state == "pregame":
                 if len(self.players) == 0:
@@ -890,7 +890,7 @@ class Economy:
 
                 card = await self.draw_card("dealer")
                 
-                if self.settings["BLACKJACK_IMAGES_ENABLED"]:
+                if True:
                     await self.bot.upload("data\economy\playing_cards\hidden_card.png")
                 
                 await self.bot.say("**The dealer has drawn a {0}!**".format(card))
@@ -903,10 +903,10 @@ class Economy:
                         if player != "dealer" and not self.players[player]["hand"][hand]["standing"]:
                             all_stood = False
 
-                if self.timer < self.settings["BLACKJACK_GAME_TIME"] and not all_stood:
+                if self.timer < 60 and not all_stood:
                     self.timer += 1
                     await asyncio.sleep(1)
-                elif all_stood or self.timer >= self.settings["BLACKJACK_GAME_TIME"]:
+                elif all_stood or self.timer >= 60:
                     self.game_state = "endgame"
 
             if self.game_state == "endgame":
@@ -1008,7 +1008,7 @@ class Economy:
 
         await self.count_hand(player, curr_hand) #to change ace names and values in the "ranks" table, don't actually need the count
 
-        if self.settings["BLACKJACK_IMAGES_ENABLED"]:
+        if True:
             await self.bot.upload("data\economy\playing_cards\\" + rank + "_of_" + suit + ".png")
 
         if rank == "small_ace":
