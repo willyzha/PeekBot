@@ -678,7 +678,7 @@ class Economy:
                 else:
                     await self.bot.say("{0} has placed a new bet of {1}".format(player.mention, bet))
                     self.bank.add_money(player, bet)
-                    self.bank.withdraw_credits(player.id, bet)
+                    self.bank.withdraw_credits(player, bet)
 
                 self.players[player] = {}
                 self.players[player]["curr_hand"] = 0
@@ -697,7 +697,7 @@ class Economy:
         elif self.game_state != "pregame" and self.game_state != "null":
             await self.bot.say("There is currently a game in progress, wait for the next game")
 
-        elif not self.bank.can_spend(player.id, bet):
+        elif not self.bank.can_spend(player, bet):
             await self.bot.say("{0}, you need an account with enough funds to play blackjack".format(player.mention))
 
     @blackjack.command(pass_context=True, no_pm=True)
@@ -764,11 +764,11 @@ class Economy:
         curr_hand = self.players[player]["curr_hand"]
         bet = self.players[player]["hand"][curr_hand]["bet"]
 
-        if self.bank.can_spend(player.id, bet) and not self.players[player]["hand"][curr_hand]["standing"] and self.game_state == "game":
+        if self.bank.can_spend(player, bet) and not self.players[player]["hand"][curr_hand]["standing"] and self.game_state == "game":
             await self.bot.say("{0} has doubled down, totaling their bet to {1}".format(player.mention, self.players[player]["hand"][curr_hand]["bet"]))
 
             self.players[player]["hand"][curr_hand]["bet"] += bet
-            self.bank.withdraw_credits(player.id, bet)
+            self.bank.withdraw_credits(player, bet)
             
             card = await self.draw_card(player)
             count = await self.count_hand(player, self.players[player]["curr_hand"])
@@ -797,7 +797,7 @@ class Economy:
         elif self.players[player]["hand"][curr_hand]["standing"]:
             await self.bot.say("{0}, you are standing and cannot double!".format(player.mention))
         
-        elif not self.bank.can_spend(player.id, bet):
+        elif not self.bank.can_spend(player, bet):
             await self.bot.say("{0}, you do not have enough money to double down!".format(player.mention))
         
 
