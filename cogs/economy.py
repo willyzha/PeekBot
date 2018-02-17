@@ -711,7 +711,7 @@ class Economy:
                 
         
         elif self.game_state == "null":
-            await self.bot.say("There is currently no game running, type `/blackjack start` to begin one")
+            await self.bot.say("There is currently no game running, type `!blackjack start` to begin one")
         
         elif self.game_state != "pregame" and self.game_state != "null":
             await self.bot.say("There is currently a game in progress, wait for the next game")
