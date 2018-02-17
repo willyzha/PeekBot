@@ -504,7 +504,6 @@ class Economy:
                         " wait {}.".format(author.mention, dtime))
             else:
                 multiplier = 1;
-                print(author.roles)
                 for role in author.roles:
                     if role.name in multiplier_settings:
                         if multiplier_settings[role.name] > multiplier:
