@@ -13,6 +13,8 @@ import time
 import logging
 import random
 import asyncio
+import sys
+from PIL import Image
 from random import randint
 
 default_settings = {"PAYDAY_TIME": 300, "PAYDAY_CREDITS": 120,
@@ -863,6 +865,11 @@ class Economy:
                     card1 = await self.draw_card(player)
                     card2 = await self.draw_card(player)    
 
+                    # Merge images for the two cards
+                    #output_img =  self.merge_image_list(["data/economy/playing_cards/" + card1.replace(" ", "_") + ".png", "data/economy/playing_cards/" + card2.replace(" ", "_") + ".png"])
+                    
+                    #await self.bot.upload(output_img)
+
                     curr_hand = self.players[player]["curr_hand"]
                     ranks = self.players[player]["hand"][curr_hand]["ranks"]
                     count = await self.count_hand(player, curr_hand)
@@ -888,9 +895,13 @@ class Economy:
                 self.players["dealer"]["hand"][0]["ranks"] = []
 
                 card = await self.draw_card("dealer")
-                
-                if True:
-                    await self.bot.upload("data/economy/playing_cards/hidden_card.png")
+
+                #output_img = self.merge_image_list(["data/economy/playing_cards/" + card.replace(" ", "_") + ".png", "data/economy/playing_cards/hidden_card.png"])
+
+                #await self.bot.upload(output_img)
+
+                #if True:
+                    #await self.bot.upload("data/economy/playing_cards/hidden_card.png")
                 
                 await self.bot.say("**The dealer has drawn a {0}!**".format(card))
                 self.game_state = "game"
@@ -1005,10 +1016,23 @@ class Economy:
         self.players[player]["hand"][curr_hand]["card"][card_index]["value"] = self.deck[suit][num]["value"]
         self.players[player]["hand"][curr_hand]["ranks"].append(rank)
 
+        print(self.players[player]["hand"][curr_hand]["card"])
+
         await self.count_hand(player, curr_hand) #to change ace names and values in the "ranks" table, don't actually need the count
 
         if True:
-            await self.bot.upload("data/economy/playing_cards//" + rank + "_of_" + suit + ".png")
+            hand = []
+            for card in list(self.players[player]["hand"][curr_hand]["card"].values()):
+                print_rank = card["rank"]
+                if print_rank == "small_ace":
+                    print_rank = "ace"
+                hand.append("data/economy/playing_cards//" + print_rank + "_of_" + card["suit"] + ".png")
+            if player is "dealer" and len(hand) == 1:
+                hand.append("data/economy/playing_cards/hidden_card.png")
+
+            if len(hand) > 1:
+                hand_img = self.merge_image_list(hand)
+                await self.bot.upload(hand_img)
 
         if rank == "small_ace":
             rank = "ace"
@@ -1292,6 +1316,22 @@ class Economy:
                 result.append("{} {}".format(value, name))
         return ', '.join(result[:granularity])
 
+    def merge_image_list(self, img_list):
+        images = list(map(Image.open, img_list))
+        widths, heights = zip(*(i.size for i in images))
+
+        total_width = sum(widths)
+        max_height = max(heights)
+
+        new_im = Image.new('RGB', (total_width, max_height))
+
+        x_offset = 0
+        for im in images:
+            new_im.paste(im, (x_offset,0))
+            x_offset += im.size[0]
+
+        new_im.save('data/economy/playing_cards/output.png')
+        return 'data/economy/playing_cards/output.png'
 
 def check_folders():
     if not os.path.exists("data/economy"):
