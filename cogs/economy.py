@@ -371,11 +371,11 @@ class Economy:
 
         self.shuffle_deck()
         
-        print(self.deck_queue)
-        print(self.drawn_queue)
+        #print(self.deck_queue)
+        #print(self.drawn_queue)
         
-        print(len(self.deck_queue))
-        print(len(self.drawn_queue))
+        #print(len(self.deck_queue))
+        #print(len(self.drawn_queue))
         
     @commands.group(name="bank", pass_context=True)
     async def _bank(self, ctx):
