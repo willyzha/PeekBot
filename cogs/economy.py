@@ -334,7 +334,12 @@ class Economy:
         """
 
         self.deck = {}
-
+        
+        self.dealer_hidden_card = None
+        self.deck_queue = []
+        self.drawn_queue = []
+        self.num_decks = 4
+       
         for suit in ["hearts", "diamonds", "clubs", "spades"]:
             self.deck[suit] = {}
             for i in range(2, 11):
@@ -358,7 +363,20 @@ class Economy:
             self.deck[suit][13]["rank"] = "king"
             self.deck[suit][13]["value"] = 10
 
+            for j in range(0, self.num_decks):
+                for card in list(self.deck[suit].values()):
+                    temp_card = card
+                    temp_card["suit"] = suit                
+                    self.drawn_queue.append(temp_card)
 
+        self.shuffle_deck()
+        
+        print(self.deck_queue)
+        print(self.drawn_queue)
+        
+        print(len(self.deck_queue))
+        print(len(self.drawn_queue))
+        
     @commands.group(name="bank", pass_context=True)
     async def _bank(self, ctx):
         """Bank operations"""
@@ -895,7 +913,9 @@ class Economy:
                 self.players["dealer"]["hand"][0]["ranks"] = []
 
                 card = await self.draw_card("dealer")
-
+                hidden_card = await self.draw_card("dealer")
+                #print(hidden_card)
+                
                 #output_img = self.merge_image_list(["data/economy/playing_cards/" + card.replace(" ", "_") + ".png", "data/economy/playing_cards/hidden_card.png"])
 
                 #await self.bot.upload(output_img)
@@ -991,29 +1011,37 @@ class Economy:
 
                     self.game_state = "pregame"
                     await asyncio.sleep(3)
+                    
+                if len(self.drawn_queue) > len(self.deck_queue):
+                    await self.bot.say("The is being shuffled!")
+                    self.shuffle_deck()
+                    
 
     async def draw_card(self, player):
-        suit = randint(1, 4)
-        num = randint(1, 13)
+        drawn_card = self.deck_queue.pop(0)           
 
-        if suit == 1:
-            suit = "hearts"
-        elif suit == 2:
-            suit = "diamonds"
-        elif suit == 3:
-            suit = "clubs"
-        elif suit == 4:
-            suit = "spades"
-
-        rank = self.deck[suit][num]["rank"]
+        #rank = self.deck[suit][num]["rank"]
 
         curr_hand = self.players[player]["curr_hand"]
         card_index = len(self.players[player]["hand"][curr_hand]["card"])
 
+        if player is "dealer" and card_index == 1:
+            if self.dealer_hidden_card is None:
+                self.dealer_hidden_card = drawn_card
+                return str(drawn_card)
+            else:
+                self.deck_queue = [drawn_card] + self.deck_queue
+                drawn_card = self.dealer_hidden_card
+                self.dealer_hidden_card = None            
+            
+        suit = drawn_card["suit"]
+        value = drawn_card["value"]
+        rank = drawn_card["rank"]
+            
         self.players[player]["hand"][curr_hand]["card"][card_index] = {}
         self.players[player]["hand"][curr_hand]["card"][card_index]["suit"] = suit
         self.players[player]["hand"][curr_hand]["card"][card_index]["rank"] = rank
-        self.players[player]["hand"][curr_hand]["card"][card_index]["value"] = self.deck[suit][num]["value"]
+        self.players[player]["hand"][curr_hand]["card"][card_index]["value"] = value
         self.players[player]["hand"][curr_hand]["ranks"].append(rank)
 
         await self.count_hand(player, curr_hand) #to change ace names and values in the "ranks" table, don't actually need the count
@@ -1034,7 +1062,12 @@ class Economy:
 
         if rank == "small_ace":
             rank = "ace"
-
+        
+        self.drawn_queue.append(drawn_card)  
+        
+        #print(len(self.deck_queue))
+        #print(len(self.drawn_queue))
+        
         return rank + " of " + suit
 
     async def count_hand(self, player, curr_hand):
@@ -1330,6 +1363,21 @@ class Economy:
 
         new_im.save('data/economy/playing_cards/output.png')
         return 'data/economy/playing_cards/output.png'
+        
+    def shuffle_deck(self):
+        
+        for i in range(0, len(self.deck_queue)):
+            self.drawn_queue.append(self.deck_queue[i])
+            
+            del self.deck_queue[i]
+        
+        for i in range(0, len(self.drawn_queue)):
+            randIndex = randint(0, len(self.drawn_queue)-1)
+            
+            self.deck_queue.append(self.drawn_queue[randIndex])
+            
+            del self.drawn_queue[randIndex]
+        
 
 def check_folders():
     if not os.path.exists("data/economy"):
