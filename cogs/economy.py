@@ -1016,8 +1016,6 @@ class Economy:
         self.players[player]["hand"][curr_hand]["card"][card_index]["value"] = self.deck[suit][num]["value"]
         self.players[player]["hand"][curr_hand]["ranks"].append(rank)
 
-        print(self.players[player]["hand"][curr_hand]["card"])
-
         await self.count_hand(player, curr_hand) #to change ace names and values in the "ranks" table, don't actually need the count
 
         if True:
