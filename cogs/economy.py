@@ -373,7 +373,7 @@ class Economy:
                     temp_card["suit"] = suit                
                     self.drawn_queue.append(temp_card)
 
-        self.shuffle_deck()
+        self.basic_shuffle_deck()
         
         #print(self.deck_queue)
         #print(self.drawn_queue)
@@ -1018,7 +1018,7 @@ class Economy:
                     
                 if len(self.drawn_queue) > len(self.deck_queue):
                     await self.bot.say("The is being shuffled!")
-                    self.shuffle_deck()
+                    await self.shuffle_deck()
                     
 
     async def draw_card(self, player):
@@ -1075,7 +1075,44 @@ class Economy:
         #print(len(self.drawn_queue))
         
         return rank + " of " + suit
-
+        
+    async def shuffle_deck(self):
+        
+        #with yield from self.draw_lock:
+        for i in range(0, len(self.deck_queue)):
+            self.drawn_queue.append(self.deck_queue[i])
+            
+            del self.deck_queue[i]
+        
+        for i in range(0, len(self.drawn_queue)):
+            randIndex = randint(0, len(self.drawn_queue)-1)
+            
+            self.deck_queue.append(self.drawn_queue[randIndex])
+            
+            del self.drawn_queue[randIndex]
+            
+        return True
+        
+    def basic_shuffle_deck(self):
+        
+        #with yield from self.draw_lock:
+        for i in range(0, len(self.deck_queue)):
+            self.drawn_queue.append(self.deck_queue[i])
+            
+            del self.deck_queue[i]
+        
+        for i in range(0, len(self.drawn_queue)):
+            randIndex = randint(0, len(self.drawn_queue)-1)
+            
+            self.deck_queue.append(self.drawn_queue[randIndex])
+            
+            del self.drawn_queue[randIndex]
+            
+        #print(len(self.deck_queue))
+        #print(len(self.drawn_queue))
+            
+        return True
+        
     async def count_hand(self, player, curr_hand):
         count = 0
         cards = self.players[player]["hand"][curr_hand]["card"]
@@ -1124,7 +1161,7 @@ class Economy:
         
         output_msg = "Remaining Cards\n"
         for card in temp_list.keys():
-            print(card)
+            #print(card)
             output_msg = output_msg + str(card) + ": " + str(temp_list[card]) + "\n"
         
         await self.bot.say("```"+ output_msg + "```")
@@ -1402,23 +1439,7 @@ class Economy:
             x_offset += im.size[0]
 
         new_im.save('data/economy/playing_cards/output.png')
-        return 'data/economy/playing_cards/output.png'
-        
-    def shuffle_deck(self):
-        
-        #with yield from self.draw_lock:
-        for i in range(0, len(self.deck_queue)):
-            self.drawn_queue.append(self.deck_queue[i])
-            
-            del self.deck_queue[i]
-        
-        for i in range(0, len(self.drawn_queue)):
-            randIndex = randint(0, len(self.drawn_queue)-1)
-            
-            self.deck_queue.append(self.drawn_queue[randIndex])
-            
-            del self.drawn_queue[randIndex]
-        
+        return 'data/economy/playing_cards/output.png'      
 
 def check_folders():
     if not os.path.exists("data/economy"):
