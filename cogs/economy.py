@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from cogs.utils.dataIO import dataIO
-from collections import namedtuple, defaultdict, deque
+from collections import namedtuple, defaultdict, deque, OrderedDict
 from datetime import datetime
 from copy import deepcopy
 from .utils import checks
@@ -13,7 +13,9 @@ import time
 import logging
 import random
 import asyncio
+from asyncio import Lock
 import sys
+import threading
 from PIL import Image
 from random import randint
 
@@ -338,7 +340,8 @@ class Economy:
         self.dealer_hidden_card = None
         self.deck_queue = []
         self.drawn_queue = []
-        self.num_decks = 4
+        self.num_decks = 2
+        self.draw_lock = Lock()
        
         for suit in ["hearts", "diamonds", "clubs", "spades"]:
             self.deck[suit] = {}
@@ -363,6 +366,7 @@ class Economy:
             self.deck[suit][13]["rank"] = "king"
             self.deck[suit][13]["value"] = 10
 
+            #with (yield from self.draw_lock):
             for j in range(0, self.num_decks):
                 for card in list(self.deck[suit].values()):
                     temp_card = card
@@ -1018,6 +1022,8 @@ class Economy:
                     
 
     async def draw_card(self, player):
+
+        #with (yield from self.draw_lock):
         drawn_card = self.deck_queue.pop(0)           
 
         #rank = self.deck[suit][num]["rank"]
@@ -1104,6 +1110,40 @@ class Economy:
             await self.bot.say(msg)
 
 
+    @commands.group(pass_context=True, no_pm=True)
+    @checks.admin_or_permissions(manage_server=True)
+    async def blackjackdecklist(self, ctx):
+        #with (yield from self.draw_lock):
+        temp_list = OrderedDict([("ace",0),("2",0),("3",0),("4",0),("5",0),("6",0),("7",0),("8",0),("9",0),("10",0),("jack",0),("queen",0),("king",0)])
+        for card in self.deck_queue:
+            suit = card["suit"]
+            value = card["value"]
+            rank = card["rank"]
+
+            temp_list[rank] = temp_list[rank] + 1
+        
+        output_msg = "Remaining Cards\n"
+        for card in temp_list.keys():
+            print(card)
+            output_msg = output_msg + str(card) + ": " + str(temp_list[card]) + "\n"
+        
+        await self.bot.say("```"+ output_msg + "```")
+        
+        temp_list = OrderedDict([("ace",0),("2",0),("3",0),("4",0),("5",0),("6",0),("7",0),("8",0),("9",0),("10",0),("jack",0),("queen",0),("king",0)])
+        for card in self.drawn_queue:
+            suit = card["suit"]
+            value = card["value"]
+            rank = card["rank"]
+
+            temp_list[rank] = temp_list[rank] + 1
+                
+        output_msg = "Drawn Cards\n"
+        for card in temp_list.keys():
+            if temp_list[card] > 0:
+                output_msg = output_msg + str(card) + ": " + str(temp_list[card]) + "\n"
+        
+        await self.bot.say("```"+ output_msg + "```")
+            
     @blackjackset.command()
     async def blackjackmin(self, bet : int):
         """Minimum blackjack bet"""
@@ -1174,7 +1214,7 @@ class Economy:
         """Shows slot machine payouts"""
         await self.bot.whisper(SLOT_PAYOUTS_MSG)
 
-                               
+
     @commands.command(pass_context=True, no_pm=True)
     async def slot(self, ctx, bid: int):
         """Play the slot machine"""
@@ -1366,6 +1406,7 @@ class Economy:
         
     def shuffle_deck(self):
         
+        #with yield from self.draw_lock:
         for i in range(0, len(self.deck_queue)):
             self.drawn_queue.append(self.deck_queue[i])
             
