@@ -22,7 +22,7 @@ from random import randint
 default_settings = {"PAYDAY_TIME": 300, "PAYDAY_CREDITS": 120,
                     "SLOT_MIN": 5, "SLOT_MAX": 100, "SLOT_TIME": 0,
                     "REGISTER_CREDITS": 0}
-multiplier_settings = {"[ 🇯🇴🇧 ] Potato Farmer": 2, "[ 🇯🇴🇧 ] Sweet Potato Farmer": 2.5, "[ 🇯🇴🇧 ] Tomato Farmer": 3, "[ 🇯🇴🇧 ] Juicy Tomato Farmer": 3.5, "[ 🇯🇴🇧 ] Potato Factory Owner": 5, "[ 🇯🇴🇧 ] Tomato Factory Owner": 7, "[ 🇯🇴🇧 ] Kiwi Factory Owner": 9, "[ 🇯🇴🇧 ] Strawberry Factory Owner": 15, "[ 🇯🇴🇧 ] Watermelon Factory Owner": 20, "[ 🇯🇴🇧 ] Peek Melon Virtuoso": 30}
+multiplier_settings = {"[ 🇯🇴🇧 ] Potato Farmer": 2, "[ 🇯🇴🇧 ] Sweet Potato Farmer": 2.5, "[ 🇯🇴🇧 ] Tomato Farmer": 3, "[ 🇯🇴🇧 ] Juicy Tomato Farmer": 3.5, "[ 🇯🇴🇧 ] Potato Factory Owner": 5, "[ 🇯🇴🇧 ] Tomato Factory Owner": 8, "[ 🇯🇴🇧 ] Kiwi Factory Owner": 11, "[ 🇯🇴🇧 ] Strawberry Factory Owner": 17, "[ 🇯🇴🇧 ] Watermelon Factory Owner": 23, "[ 🇯🇴🇧 ] Peek Melon Virtuoso": 30
 
 class EconomyError(Exception):
     pass
