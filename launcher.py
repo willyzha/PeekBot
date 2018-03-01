@@ -570,4 +570,4 @@ if __name__ == '__main__':
         main()
     elif args.start:
         print("Starting Red...")
-        run_red(autorestart=args.auto_restart)
+        run_red(autorestart=True)

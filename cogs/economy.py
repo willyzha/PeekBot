@@ -77,43 +77,43 @@ class SMReel(Enum):
 
 PAYOUTS = {
     (SMReel.two, SMReel.two, SMReel.six) : {
-        "payout" : lambda x: x * 2500 + x,
+        "payout" : 80,
         "phrase" : "JACKPOT! 226! Your bid has been multiplied * 2500!"
     },
     (SMReel.flc, SMReel.flc, SMReel.flc) : {
-        "payout" : lambda x: x + 1000,
+        "payout" : 20,
         "phrase" : "4LC! +1000!"
     },
     (SMReel.cherries, SMReel.cherries, SMReel.cherries) : {
-        "payout" : lambda x: x + 800,
+        "payout" : 15,
         "phrase" : "Three cherries! +800!"
     },
     (SMReel.two, SMReel.six) : {
-        "payout" : lambda x: x * 4 + x,
+        "payout" : 10,
         "phrase" : "2 6! Your bid has been multiplied * 4!"
     },
     (SMReel.cherries, SMReel.cherries) : {
-        "payout" : lambda x: x * 3 + x,
+        "payout" : 8,
         "phrase" : "Two cherries! Your bid has been multiplied * 3!"
     },
     "3 symbols" : {
-        "payout" : lambda x: x + 500,
+        "payout" : 5,
         "phrase" : "Three symbols! +500!"
     },
     "2 symbols" : {
-        "payout" : lambda x: x * 2 + x,
+        "payout" : 2,
         "phrase" : "Two consecutive symbols! Your bid has been multiplied * 2!"
     },
 }
 
 SLOT_PAYOUTS_MSG = ("Slot machine payouts:\n"
-                    "{two.value} {two.value} {six.value} Bet * 2500\n"
-                    "{flc.value} {flc.value} {flc.value} +1000\n"
-                    "{cherries.value} {cherries.value} {cherries.value} +800\n"
-                    "{two.value} {six.value} Bet * 4\n"
-                    "{cherries.value} {cherries.value} Bet * 3\n\n"
-                    "Three symbols: +500\n"
-                    "Two symbols: Bet * 2".format(**SMReel.__dict__))
+                    "{two.value} {two.value} {six.value} 80% of jackpot\n"
+                    "{flc.value} {flc.value} {flc.value} 20% of jackpot\n"
+                    "{cherries.value} {cherries.value} {cherries.value} 15% of jackpot\n"
+                    "{two.value} {six.value} 10% of jackpot\n"
+                    "{cherries.value} {cherries.value} 8% of jackpot\n\n"
+                    "Three symbols: 5% of jackpot\n"
+                    "Two symbols: 2% of jackpot".format(**SMReel.__dict__))
 
 
 class Bank:
@@ -295,7 +295,41 @@ class SetParser:
         else:
             raise
 
-
+class Slot:
+    def __init__(self, bot, file_path):
+        self.jackpot_file = file_path
+        self.bot = bot
+        self.jackpot_data = {}
+        self.read_jackpot_file()
+                
+    def read_jackpot_file(self):
+        self.jackpot_data = dataIO.load_json(self.jackpot_file)
+        print("read_jackpot_file: " + str(self.jackpot_data))
+        if bool(self.jackpot_data) is False:
+            self.jackpot_data = {"pot": 0}
+            self.write_jackpot_file()
+            
+    def write_jackpot_file(self):
+        print("Writing... " + str(self.jackpot_data))
+        dataIO.save_json(self.jackpot_file, self.jackpot_data)
+        
+    def add_to_pot(self, amount):
+        print("adding to pot... " + str(amount))
+        self.jackpot_data['pot'] = self.jackpot_data['pot'] + amount
+        self.write_jackpot_file()
+            
+    def payout(self, payout):
+        amount = 0
+        amount = int(payout/100 * self.jackpot_data['pot'])
+        
+        self.jackpot_data['pot'] = self.jackpot_data['pot'] - amount
+        self.write_jackpot_file()
+        
+        return amount
+        
+    def get_current_jackpot(self):
+        return self.jackpot_data['pot']
+            
 class Economy:
     """Economy
 
@@ -305,6 +339,7 @@ class Economy:
         global default_settings
         self.bot = bot
         self.bank = Bank(bot, "data/economy/bank.json")
+        self.slot = Slot(bot, "data/economy/slot.json")
         self.file_path = "data/economy/settings.json"
         self.settings = dataIO.load_json(self.file_path)
         if "PAYDAY_TIME" in self.settings:  # old format
@@ -1152,14 +1187,16 @@ class Economy:
     async def blackjackdecklist(self, ctx):
         #with (yield from self.draw_lock):
         temp_list = OrderedDict([("ace",0),("2",0),("3",0),("4",0),("5",0),("6",0),("7",0),("8",0),("9",0),("10",0),("jack",0),("queen",0),("king",0)])
+        card_counter = 0
         for card in self.deck_queue:
             suit = card["suit"]
             value = card["value"]
             rank = card["rank"]
-
+            
             temp_list[rank] = temp_list[rank] + 1
+            card_counter = card_counter + 1
         
-        output_msg = "Remaining Cards\n"
+        output_msg = "Remaining Cards: " + str(card_counter) + "\n"
         for card in temp_list.keys():
             #print(card)
             output_msg = output_msg + str(card) + ": " + str(temp_list[card]) + "\n"
@@ -1167,14 +1204,16 @@ class Economy:
         await self.bot.say("```"+ output_msg + "```")
         
         temp_list = OrderedDict([("ace",0),("2",0),("3",0),("4",0),("5",0),("6",0),("7",0),("8",0),("9",0),("10",0),("jack",0),("queen",0),("king",0)])
+        card_counter = 0
         for card in self.drawn_queue:
             suit = card["suit"]
             value = card["value"]
             rank = card["rank"]
 
             temp_list[rank] = temp_list[rank] + 1
+            card_counter = card_counter + 1
                 
-        output_msg = "Drawn Cards\n"
+        output_msg = "Drawn Cards: " + str(card_counter) + "\n"
         for card in temp_list.keys():
             if temp_list[card] > 0:
                 output_msg = output_msg + str(card) + ": " + str(temp_list[card]) + "\n"
@@ -1250,15 +1289,20 @@ class Economy:
     async def payouts(self):
         """Shows slot machine payouts"""
         await self.bot.whisper(SLOT_PAYOUTS_MSG)
+        await self.bot.whisper("Current Jackpot: " + str(self.slot.get_current_jackpot()))
 
-
-    @commands.command(pass_context=True, no_pm=True)
-    async def slot(self, ctx, bid: int):
+    @commands.group(pass_context=True, no_pm=True)
+    async def slots(self, ctx):
         """Play the slot machine"""
+        if ctx.message.content.strip() != "!slots": 
+            return
+        
         author = ctx.message.author
         server = author.server
         settings = self.settings[server.id]
-        valid_bid = settings["SLOT_MIN"] <= bid and bid <= settings["SLOT_MAX"]
+        valid_bid = True#settings["SLOT_MIN"] <= bid and bid <= settings["SLOT_MAX"]
+        bid = settings["SLOT_PRICE"]
+        print(bid)
         slot_time = settings["SLOT_TIME"]
         last_slot = self.slot_register.get(author.id)
         now = datetime.utcnow()
@@ -1286,6 +1330,10 @@ class Economy:
                                "".format(settings["SLOT_MIN"],
                                          settings["SLOT_MAX"]))
 
+    @slots.command(pass_context=True, no_pm=True)
+    async def jackpot(self, ctx):
+        await self.bot.say("Current Jackpot: " + str(self.slot.get_current_jackpot()))
+                                         
     async def slot_machine(self, author, bid):
         default_reel = deque(SMReel)
         reels = []
@@ -1305,36 +1353,47 @@ class Economy:
                 sign = ">"
             slot += "{}{} {} {}\n".format(sign, *[c.value for c in row])
 
-        payout = PAYOUTS.get(rows[1])
-        if not payout:
+        payout_ratio = PAYOUTS.get(rows[1])
+        print(payout_ratio)
+        if not payout_ratio:
             # Checks for two-consecutive-symbols special rewards
-            payout = PAYOUTS.get((rows[1][0], rows[1][1]),
-                     PAYOUTS.get((rows[1][1], rows[1][2]))
-                                )
-        if not payout:
+            payout_ratio = PAYOUTS.get((rows[1][0], rows[1][1]),
+                     PAYOUTS.get((rows[1][1], rows[1][2])))
+        if not payout_ratio:
             # Still nothing. Let's check for 3 generic same symbols
             # or 2 consecutive symbols
             has_three = rows[1][0] == rows[1][1] == rows[1][2]
             has_two = (rows[1][0] == rows[1][1]) or (rows[1][1] == rows[1][2])
             if has_three:
-                payout = PAYOUTS["3 symbols"]
+                payout_ratio = PAYOUTS["3 symbols"]
             elif has_two:
-                payout = PAYOUTS["2 symbols"]
+                payout_ratio = PAYOUTS["2 symbols"]
 
+        payout = 0
+        if payout_ratio is None:
+            payout = self.slot.payout(0)
+        else:
+            print(payout_ratio["payout"])
+            payout = self.slot.payout(payout_ratio["payout"])
+
+        self.slot.add_to_pot(bid)
+            
         if payout:
             then = self.bank.get_balance(author)
-            pay = payout["payout"](bid)
-            now = then - bid + pay
+            now = then - bid + payout
+            print(bid)
             self.bank.set_credits(author, now)
             await self.bot.say("{}\n{} {}\n\nYour bid: {}\n{} → {}!"
                                "".format(slot, author.mention,
-                                         payout["phrase"], bid, then, now))
+                                         "You won " + str(payout_ratio["payout"]) + "% (" + str(payout) + ") of the jackpot!!", bid, then, now))
         else:
             then = self.bank.get_balance(author)
             self.bank.withdraw_credits(author, bid)
             now = then - bid
             await self.bot.say("{}\n{} Nothing!\nYour bid: {}\n{} → {}!"
                                "".format(slot, author.mention, bid, then, now))
+        
+        await self.bot.say("Current Jackpot: " + str(self.slot.get_current_jackpot()))
 
     @commands.group(pass_context=True, no_pm=True)
     @checks.admin_or_permissions(manage_server=True)
@@ -1466,6 +1525,10 @@ def check_files():
         print("Creating empty bank.json...")
         dataIO.save_json(f, {})
 
+    f = "data/economy/slot.json"
+    if not dataIO.is_valid_json(f):
+        print("Creating empty slot.json...")
+        dataIO.save_json(f, {})
 
 def setup(bot):
     global logger
