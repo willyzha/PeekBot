@@ -21,7 +21,7 @@ from random import randint
 
 default_settings = {"PAYDAY_TIME": 300, "PAYDAY_CREDITS": 120,
                     "SLOT_MIN": 5, "SLOT_MAX": 100, "SLOT_TIME": 0,
-                    "REGISTER_CREDITS": 0}
+                    "REGISTER_CREDITS": 0, "SLOT_PRICE" : 1000}
 multiplier_settings = {"[ 🇯🇴🇧 ] Potato Farmer": 2, 
                        "[ 🇯🇴🇧 ] Sweet Potato Farmer": 2.5, 
                        "[ 🇯🇴🇧 ] Tomato Farmer": 3, 
@@ -33,6 +33,8 @@ multiplier_settings = {"[ 🇯🇴🇧 ] Potato Farmer": 2,
                        "[ 🇯🇴🇧 ] Watermelon Factory Owner": 23, 
                        "[ 🇯🇴🇧 ] Peek Melon Virtuoso": 30}
 
+TAX_RATE = 0.02
+                       
 class EconomyError(Exception):
     pass
 
@@ -596,6 +598,8 @@ class Economy:
         Defaults to server"""
         if ctx.invoked_subcommand is None:
             await ctx.invoke(self._server_leaderboard)
+            
+        self.tax()
 
     @leaderboard.command(name="server", pass_context=True)
     async def _server_leaderboard(self, ctx, top: int=10):
@@ -804,24 +808,25 @@ class Economy:
     async def stand(self, ctx):
         """Finishing drawing and stand with your current cards"""
         player = ctx.message.author
+        if player in self.players:
         curr_hand = self.players[player]["curr_hand"]
-        if self.game_state == "game" and not self.players[player]["hand"][curr_hand]["standing"]:
-            count = await self.count_hand(player, self.players[player]["curr_hand"])
-            
-            if len(self.players[player]["hand"]) == self.players[player]["curr_hand"] + 1:
-                await self.bot.say("{0} has stood with a hand totaling to {1}".format(player.mention, str(count)))
-            
-            else:
-                await self.bot.say("{0} has stood with a hand totaling to {1}. Moving on to next split hand!".format(player.mention, str(count)))
-                self.players[player]["curr_hand"] += 1
+            if self.game_state == "game" and not self.players[player]["hand"][curr_hand]["standing"]:
+                count = await self.count_hand(player, self.players[player]["curr_hand"])
+                
+                if len(self.players[player]["hand"]) == self.players[player]["curr_hand"] + 1:
+                    await self.bot.say("{0} has stood with a hand totaling to {1}".format(player.mention, str(count)))
+                
+                else:
+                    await self.bot.say("{0} has stood with a hand totaling to {1}. Moving on to next split hand!".format(player.mention, str(count)))
+                    self.players[player]["curr_hand"] += 1
 
-            self.players[player]["hand"][curr_hand]["standing"] = True
+                self.players[player]["hand"][curr_hand]["standing"] = True
 
-        elif self.game_state != "game":
-            await self.bot.say("{0}, you cannot stand right now".format(player.mention))
-        
-        elif self.players[player]["hand"][curr_hand]["standing"]:
-            await self.bot.say("{0}, you are already standing".format(player.mention))
+            elif self.game_state != "game":
+                await self.bot.say("{0}, you cannot stand right now".format(player.mention))
+            
+            elif self.players[player]["hand"][curr_hand]["standing"]:
+                await self.bot.say("{0}, you are already standing".format(player.mention))
 
 
     @blackjack.command(pass_context=True, no_pm=True)
@@ -926,7 +931,7 @@ class Economy:
                     self.game_state = "drawing"
 
             if self.game_state == "drawing":
-                for player in self.players:
+                for player in list(self.players):
                     
                     card1 = await self.draw_card(player)
                     card2 = await self.draw_card(player)    
@@ -1123,7 +1128,7 @@ class Economy:
     async def shuffle_deck(self):
         
         #with yield from self.draw_lock:
-        for i in range(0, len(self.deck_queue)):
+        for i in reversed(range(0, len(self.deck_queue))):
             self.drawn_queue.append(self.deck_queue[i])
             
             del self.deck_queue[i]
@@ -1470,6 +1475,16 @@ class Economy:
         await self.bot.say("Registering an account will now give {} credits."
                            "".format(credits))
         dataIO.save_json(self.file_path, self.settings)
+        
+    def tax(self):
+        bank_accounts = self.bank.get_all_accounts()
+        
+        for account in bank_accounts:
+            balance = self.bank.get_balance(account)
+            tax_deduction = int(balance * TAX_RATE)
+            print(tax_deduction)
+            
+        
 
     # What would I ever do without stackoverflow?
     def display_time(self, seconds, granularity=2):
