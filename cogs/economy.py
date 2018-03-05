@@ -26,7 +26,7 @@ multiplier_settings = {"[ 🇯🇴🇧 ] Potato Farmer": 2,
                        "[ 🇯🇴🇧 ] Sweet Potato Farmer": 2.5, 
                        "[ 🇯🇴🇧 ] Tomato Farmer": 3, 
                        "[ 🇯🇴🇧 ] Juicy Tomato Farmer": 3.5,
-                       "[ 🇯🇴🇧 ] Potato Factory Owner": 6, 
+                       "[ 🇯🇴🇧 ] Potato Factory Owner": 5, 
                        "[ 🇯🇴🇧 ] Tomato Factory Owner": 8, 
                        "[ 🇯🇴🇧 ] Kiwi Factory Owner": 11, 
                        "[ 🇯🇴🇧 ] Strawberry Factory Owner": 17, 
@@ -315,17 +315,17 @@ class Slot:
                 
     def read_jackpot_file(self):
         self.jackpot_data = dataIO.load_json(self.jackpot_file)
-        print("read_jackpot_file: " + str(self.jackpot_data))
+        #print("read_jackpot_file: " + str(self.jackpot_data))
         if bool(self.jackpot_data) is False:
             self.jackpot_data = {"pot": 0}
             self.write_jackpot_file()
             
     def write_jackpot_file(self):
-        print("Writing... " + str(self.jackpot_data))
+        #print("Writing... " + str(self.jackpot_data))
         dataIO.save_json(self.jackpot_file, self.jackpot_data)
         
     def add_to_pot(self, amount):
-        print("adding to pot... " + str(amount))
+        #print("adding to pot... " + str(amount))
         self.jackpot_data['pot'] = self.jackpot_data['pot'] + amount
         self.write_jackpot_file()
             
@@ -598,8 +598,6 @@ class Economy:
         Defaults to server"""
         if ctx.invoked_subcommand is None:
             await ctx.invoke(self._server_leaderboard)
-            
-        self.tax()
 
     @leaderboard.command(name="server", pass_context=True)
     async def _server_leaderboard(self, ctx, top: int=10):
@@ -809,7 +807,7 @@ class Economy:
         """Finishing drawing and stand with your current cards"""
         player = ctx.message.author
         if player in self.players:
-        curr_hand = self.players[player]["curr_hand"]
+            curr_hand = self.players[player]["curr_hand"]
             if self.game_state == "game" and not self.players[player]["hand"][curr_hand]["standing"]:
                 count = await self.count_hand(player, self.players[player]["curr_hand"])
                 
@@ -1476,15 +1474,32 @@ class Economy:
                            "".format(credits))
         dataIO.save_json(self.file_path, self.settings)
         
-    def tax(self):
-        bank_accounts = self.bank.get_all_accounts()
+    async def on_message(self, message):
+        if message.channel.is_private:
+            return
+            
+        if message.author.bot is False:
+            return
+
+        server = message.server
+        sid = server.id
+        
+        message_content = message.clean_content
+        print(message_content)
+        if "***__THE TAX BOT HAS COME FOR YOUR MONEY__***" in message_content:
+            self.tax(server)
+            await self.bot.send_message(message.channel, "Current Jackpot: " + str(self.slot.get_current_jackpot()))
+            
+        
+    def tax(self, server):
+        bank_accounts = self.bank.get_server_accounts(server)
         
         for account in bank_accounts:
             balance = self.bank.get_balance(account)
             tax_deduction = int(balance * TAX_RATE)
-            print(tax_deduction)
-            
-        
+            #print(tax_deduction)
+            self.bank.withdraw_credits(account, tax_deduction)
+            self.slot.add_to_pot(tax_deduction)        
 
     # What would I ever do without stackoverflow?
     def display_time(self, seconds, granularity=2):
