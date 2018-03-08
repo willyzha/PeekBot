@@ -1395,17 +1395,15 @@ class Economy:
             now = then - bid + payout
             print(bid)
             self.bank.set_credits(author, now)
-            await self.bot.say("{}\n{} {}\n\nYour bid: {}\n{} → {}!"
+            await self.bot.say("{}\n{} {}\n\nYour bid: {}\n{} → {}!\nCurrent Jackpot: {}"
                                "".format(slot, author.mention,
-                                         "You won " + str(payout_ratio["payout"]) + "% (" + str(payout) + ") of the jackpot!!", bid, then, now))
+                                         "You won " + str(payout_ratio["payout"]) + "% (" + str(payout) + ") of the jackpot!!\n", bid, then, now, self.slot.get_current_jackpot()))
         else:
             then = self.bank.get_balance(author)
             self.bank.withdraw_credits(author, bid)
             now = then - bid
-            await self.bot.say("{}\n{} Nothing!\nYour bid: {}\n{} → {}!"
-                               "".format(slot, author.mention, bid, then, now))
-        
-        await self.bot.say("Current Jackpot: " + str(self.slot.get_current_jackpot()))
+            await self.bot.say("{}\n{} Nothing!\nYour bid: {}\n{} → {}!\nCurrent Jackpot:  {}"
+                               "".format(slot, author.mention, bid, then, now, self.slot.get_current_jackpot()))
 
     @commands.group(pass_context=True, no_pm=True)
     @checks.admin_or_permissions(manage_server=True)

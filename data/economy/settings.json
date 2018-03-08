@@ -5,6 +5,7 @@
         "REGISTER_CREDITS" : 0,
         "SLOT_MAX" : 10000,
         "SLOT_MIN" : 25,
-        "SLOT_TIME" : 0
+        "SLOT_TIME" : 0,
+        "SLOT_PRICE" : 1000
     }
 }
