@@ -482,7 +482,7 @@ class TextToSpeech:
         else:
             song_filename = os.path.join(self.cache_path, filename)
 
-        use_avconv = True#self.settings["AVCONV"]
+        use_avconv = False#self.settings["AVCONV"]
         options = '-b:a 64k -bufsize 64k'
         before_options = ''
 

@@ -2,6 +2,8 @@ from os import path
 from wordcloud import WordCloud
 import sqlite3 as lite
 from discord.ext import commands
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import os
