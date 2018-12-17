@@ -10,4 +10,5 @@ sudo apt-get install libav-tools #ffmpeg
 python3 -m pip install wordcloud
 sudo apt-get install libatlas-base-dev
 python3 -m pip install matplotlib
+pip3 install imgurpython
 ```
