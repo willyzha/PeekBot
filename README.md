@@ -8,4 +8,6 @@ python3 -m pip install gTTS
 sudo apt-get install libopus0
 sudo apt-get install libav-tools #ffmpeg
 python3 -m pip install wordcloud
+sudo apt-get install libatlas-base-dev
+python3 -m pip install matplotlib
 ```
