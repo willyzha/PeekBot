@@ -7,5 +7,5 @@ python3 -m pip install Pillow
 python3 -m pip install gTTS
 sudo apt-get install libopus0
 sudo apt-get install libav-tools #ffmpeg
- python3 -m pip install wordcloud
+python3 -m pip install wordcloud
 ```
