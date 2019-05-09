@@ -552,12 +552,12 @@ class TextToSpeech:
                 return
 
             filename = queue.popleft()
-            #print("pop " + filename) 
+            print("pop " + filename) 
 
             voice_client = await self._create_ffmpeg_player(server, filename, local=True, start_time=None, end_time=None)
-            #print("create voice client")
+            print("create voice client")
             voice_client.audio_player.start()
-            #print("start voice client")
+            print("start voice client")
             self.remove_queue.append(filename)
             #os.remove(os.path.join(self.local_playlist_path, filename))
 
@@ -581,7 +581,7 @@ class TextToSpeech:
             await asyncio.sleep(0.1)
             
     def mp3_cleanup(self):
-        if len(self.remove_queue) > 0:
+        if len(self.remove_queue) > 1:
             file_to_remove = self.remove_queue.popleft()
             if self.local_playlist_path in file_to_remove:
                 os.remove(file_to_remove)
