@@ -1,6 +1,8 @@
 Installation Steps:
 ```
-python3 -m pip install -U discord.py[voice]
+sudo apt-get -y install build-essential libssl-dev libffi-dev python-dev
+sudo apt install -y libffi-dev libnacl-dev python3-dev
+sudo python3 -m pip install -U discord.py[voice]
 sudo apt-get install libopenjp2-7
 sudo apt install libtiff5
 sudo apt-get -y install libjpeg-dev zlib1g-dev
